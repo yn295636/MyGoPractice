@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/golang/mock/gomock"
 	pb "github.com/yn295636/MyGoPractice/proto"
 	"google.golang.org/grpc"
 	"log"
@@ -20,8 +21,10 @@ func NewGrpcClientFactory() GrpcClientFactory {
 	return &grpcClientFactory{}
 }
 
-func NewMockGrpcClientFactory() GrpcClientFactory {
-	return &mockGrpcClientFactory{}
+func NewMockGrpcClientFactory(ctrl *gomock.Controller) GrpcClientFactory {
+	return &MockGrpcClientFactory{
+		greeterClient: pb.NewMockGreeterClient(ctrl),
+	}
 }
 
 type grpcClientFactory struct {
@@ -42,10 +45,10 @@ func (f *grpcClientFactory) NewGreeterClient() (pb.GreeterClient, error, release
 	}
 }
 
-type mockGrpcClientFactory struct {
-	greeterClient pb.GreeterClient
+type MockGrpcClientFactory struct {
+	greeterClient *pb.MockGreeterClient
 }
 
-func (f *mockGrpcClientFactory) NewGreeterClient() (pb.GreeterClient, error, releaseFunc) {
+func (f *MockGrpcClientFactory) NewGreeterClient() (pb.GreeterClient, error, releaseFunc) {
 	return f.greeterClient, nil, func() {}
 }
