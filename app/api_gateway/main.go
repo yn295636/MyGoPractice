@@ -15,6 +15,7 @@ var (
 
 func main() {
 	grpcCF = NewGrpcClientFactory()
+
 	r := Router()
 	r.Run(fmt.Sprintf("0.0.0.0:%v", Port))
 }
@@ -22,5 +23,6 @@ func main() {
 func Router() *gin.Engine {
 	r := gin.Default()
 	r.POST("/greet", Greet)
+	r.POST("/storeinmongo", StoreInMongo)
 	return r
 }

@@ -20,6 +20,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/mongodb/mongo-go-driver/mongo"
 	"log"
 	"net"
 
@@ -28,7 +31,13 @@ import (
 )
 
 const (
-	port = ":50051"
+	Port              = ":50051"
+	MyMongoDb         = "mygopracticedb"
+	MyMongoCollection = "mygopracticecollection"
+)
+
+var (
+	mongoClient *mongo.Client
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -40,8 +49,30 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
+func (s *server) StoreInMongo(ctx context.Context, in *pb.StoreInMongoRequest) (*pb.StoreInMongoReply, error) {
+	log.Printf("Received: %v", in.Data)
+	var out *pb.StoreInMongoReply
+	out = &pb.StoreInMongoReply{
+		Result: 0,
+	}
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(in.Data), &data); err != nil {
+		log.Printf("Json unmarshal error, %v", err)
+		return out, err
+	}
+
+	if _, err := mongoClient.Database(MyMongoDb).Collection(MyMongoCollection).InsertOne(context.Background(), data); err != nil {
+		log.Printf("Insert data into mongo failed, %v", err)
+		return out, err
+	}
+	out.Result = 1
+	return out, nil
+}
+
 func main() {
-	lis, err := net.Listen("tcp", port)
+	mongoClient, _ = InitMongoClient()
+
+	lis, err := net.Listen("tcp", Port)
 	if err != nil {
 		log.Printf("failed to listen: %v", err)
 	}
@@ -50,4 +81,22 @@ func main() {
 	if err := s.Serve(lis); err != nil {
 		log.Printf("failed to serve: %v", err)
 	}
+}
+
+func InitMongoClient() (*mongo.Client, error) {
+	var clt *mongo.Client
+	var err error
+	if clt, err = mongo.NewClient(fmt.Sprintf(
+		"mongodb://%s:%s@%s",
+		"",
+		"",
+		":27017")); err != nil {
+		log.Fatalf("Init mongo client error, %v", err)
+		return nil, err
+	}
+	if err = clt.Connect(context.TODO()); err != nil {
+		log.Fatalf("Connect mongo db error, %v", err)
+		return nil, err
+	}
+	return clt, nil
 }

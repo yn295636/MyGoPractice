@@ -36,3 +36,11 @@
 [[constraint]]
   name = "github.com/appleboy/gofight"
   version = "2.0.0"
+
+[[constraint]]
+  name = "github.com/mongodb/mongo-go-driver"
+  version = "0.3.0"
+
+[[constraint]]
+  name = "github.com/agiledragon/gomonkey"
+  version = "1.0.0"

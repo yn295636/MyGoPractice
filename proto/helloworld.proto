@@ -20,6 +20,7 @@ package proto;
 service Greeter {
   // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply) {}
+  rpc StoreInMongo (StoreInMongoRequest) returns (StoreInMongoReply) {}
 }
 
 // The request message containing the user's name.
@@ -30,4 +31,14 @@ message HelloRequest {
 // The response message containing the greetings
 message HelloReply {
   string message = 1;
+}
+
+// The request message containing json string
+message StoreInMongoRequest {
+  string data = 1;
+}
+
+// The response message for store in mongo success/fail
+message StoreInMongoReply {
+  int32 result = 1;
 }
