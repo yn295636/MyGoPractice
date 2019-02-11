@@ -21,6 +21,7 @@ service Greeter {
   // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply) {}
   rpc StoreInMongo (StoreInMongoRequest) returns (StoreInMongoReply) {}
+  rpc StoreInRedis (StoreInRedisRequest) returns (StoreInRedisReply) {}
 }
 
 // The request message containing the user's name.
@@ -40,5 +41,14 @@ message StoreInMongoRequest {
 
 // The response message for store in mongo success/fail
 message StoreInMongoReply {
+  int32 result = 1;
+}
+
+message StoreInRedisRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message StoreInRedisReply {
   int32 result = 1;
 }

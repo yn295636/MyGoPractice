@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/agiledragon/gomonkey"
+	"github.com/alicebob/miniredis"
 	"github.com/gin-gonic/gin/json"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/options"
@@ -25,7 +27,7 @@ func TestGreeterService(t *testing.T) {
 	})
 
 	t.Run("StoreInMongo", func(tt *testing.T) {
-		mongoClient, _ = InitMongoClient()
+		mongoClient, _ = InitMongoClient(MongoAddr)
 		asserting := assert.New(tt)
 		collection := []interface{}{}
 		var mongoCollection *mongo.Collection
@@ -50,5 +52,27 @@ func TestGreeterService(t *testing.T) {
 			asserting.NoError(err)
 			asserting.JSONEq(jsonStr, string(actualJsonBytes))
 		}
+	})
+
+	t.Run("StoreInRedis", func(tt *testing.T) {
+		asserting := assert.New(tt)
+		mredis, err := miniredis.Run()
+		asserting.NoError(err)
+		defer mredis.Close()
+		redisPool = InitRedisPool(mredis.Addr())
+
+		key := "name"
+		value := "tester"
+
+		s := server{}
+		resp, err := s.StoreInRedis(context.Background(), &pb.StoreInRedisRequest{
+			Key: key,
+			Value: value,
+		})
+		asserting.NoError(err)
+		asserting.Equal(int32(1), resp.Result)
+		actualVal, err := mredis.Get(fmt.Sprintf("%v_%v", RedisPrefix, key))
+		asserting.NoError(err)
+		asserting.Equal(value, actualVal)
 	})
 }

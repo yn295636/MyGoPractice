@@ -10,6 +10,25 @@
   version = "v1.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:7afff364b8e5e9f1085fe77ae5630b8e0f7482338a50535881aa0b433e48fb0b"
+  name = "github.com/alicebob/gopher-json"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5a6b3ba71ee69b77cf64febf8b5a7526ca5eaef0"
+
+[[projects]]
+  digest = "1:9bfe4abf7e47f72cb471326dc012abd98dc9b85b1d288c609dd70e7081b74d54"
+  name = "github.com/alicebob/miniredis"
+  packages = [
+    ".",
+    "server",
+  ]
+  pruneopts = "UT"
+  revision = "7aa580c6d4761b53c007d24aa18e730fef3e00d4"
+  version = "v2.4.6"
+
+[[projects]]
   digest = "1:4f49887c6a1fba11096f8193088376c651bd74018d5621ce74e2889bfd3b89cd"
   name = "github.com/appleboy/gofight"
   packages = ["."]
@@ -83,6 +102,17 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
+
+[[projects]]
+  digest = "1:38ec74012390146c45af1f92d46e5382b50531247929ff3a685d2b2be65155ac"
+  name = "github.com/gomodule/redigo"
+  packages = [
+    "internal",
+    "redis",
+  ]
+  pruneopts = "UT"
+  revision = "9c11da706d9b7902c6da69c592f75637793fe121"
+  version = "v2.0.0"
 
 [[projects]]
   digest = "1:3e551bbb3a7c0ab2a2bf4660e7fcad16db089fdcfbb44b0199e62838038623ea"
@@ -194,6 +224,19 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "73f8eece6fdcd902c185bf651de50f3828bed5ed"
+
+[[projects]]
+  branch = "master"
+  digest = "1:bd191b42ec841c1f7eff4206367220294d91fd7fa01b33e1a2ce6084eb2c5ce2"
+  name = "github.com/yuin/gopher-lua"
+  packages = [
+    ".",
+    "ast",
+    "parse",
+    "pm",
+  ]
+  pruneopts = "UT"
+  revision = "8bfc7677f583b35a5663a9dd934c08f3b5774bbb"
 
 [[projects]]
   branch = "master"
@@ -327,11 +370,13 @@
   analyzer-version = 1
   input-imports = [
     "github.com/agiledragon/gomonkey",
+    "github.com/alicebob/miniredis",
     "github.com/appleboy/gofight",
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/json",
     "github.com/golang/mock/gomock",
     "github.com/golang/protobuf/proto",
+    "github.com/gomodule/redigo/redis",
     "github.com/mongodb/mongo-go-driver/mongo",
     "github.com/mongodb/mongo-go-driver/mongo/options",
     "github.com/stretchr/testify/assert",

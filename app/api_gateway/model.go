@@ -15,6 +15,15 @@ type StoreInMongoResp struct {
 	Result int32 `json:"result" example:"1"`
 }
 
+type StoreInRedisReq struct {
+	Key string `json:"key" form:"key" binding:"required" example:"name"`
+	Value string `json:"value" form:"value" binding:"required" example:"Peter"`
+}
+
+type StoreInRedisResp struct {
+	Result int32 `json:"result" example:"1"`
+}
+
 type ErrorRsp struct {
 	Code    int32  `json:"code" example:"404" format:"int32"`
 	Message string `json:"message" example:"It's an error message for developer"`

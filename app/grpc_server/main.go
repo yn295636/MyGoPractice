@@ -25,7 +25,9 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"log"
 	"net"
+	"time"
 
+	"github.com/gomodule/redigo/redis"
 	pb "github.com/yn295636/MyGoPractice/proto"
 	"google.golang.org/grpc"
 )
@@ -34,10 +36,14 @@ const (
 	Port              = ":50051"
 	MyMongoDb         = "mygopracticedb"
 	MyMongoCollection = "mygopracticecollection"
+	RedisPrefix       = "mygopractice"
+	MongoAddr = ":27017"
+	RedisAddr = "127.0.0.1:6379"
 )
 
 var (
 	mongoClient *mongo.Client
+	redisPool   *redis.Pool
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -69,8 +75,24 @@ func (s *server) StoreInMongo(ctx context.Context, in *pb.StoreInMongoRequest) (
 	return out, nil
 }
 
+func (s *server) StoreInRedis(ctx context.Context, in *pb.StoreInRedisRequest) (*pb.StoreInRedisReply, error) {
+	var out *pb.StoreInRedisReply
+	out = &pb.StoreInRedisReply{
+		Result: 0,
+	}
+	redisConn := redisPool.Get()
+	if _, err := redisConn.Do("SET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key), in.Value);
+		err != nil {
+		log.Printf("Insert data into redis failed, %v", err)
+		return out, err
+	}
+	out.Result = 1
+	return out, nil
+}
+
 func main() {
-	mongoClient, _ = InitMongoClient()
+	mongoClient, _ = InitMongoClient(MongoAddr)
+	redisPool = InitRedisPool(RedisAddr)
 
 	lis, err := net.Listen("tcp", Port)
 	if err != nil {
@@ -83,14 +105,14 @@ func main() {
 	}
 }
 
-func InitMongoClient() (*mongo.Client, error) {
+func InitMongoClient(mongoAddr string) (*mongo.Client, error) {
 	var clt *mongo.Client
 	var err error
 	if clt, err = mongo.NewClient(fmt.Sprintf(
 		"mongodb://%s:%s@%s",
 		"",
 		"",
-		":27017")); err != nil {
+		mongoAddr)); err != nil {
 		log.Fatalf("Init mongo client error, %v", err)
 		return nil, err
 	}
@@ -99,4 +121,29 @@ func InitMongoClient() (*mongo.Client, error) {
 		return nil, err
 	}
 	return clt, nil
+}
+
+func InitRedisPool(redisAddr string) *redis.Pool {
+	var pool *redis.Pool
+	pool = &redis.Pool{
+		MaxIdle:     10,
+		MaxActive:   50,
+		Wait:        true,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", redisAddr)
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			if time.Since(t) < time.Minute {
+				return nil
+			}
+			_, err := c.Do("PING")
+			return err
+		},
+	}
+	return pool
 }

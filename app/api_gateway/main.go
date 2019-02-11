@@ -24,5 +24,6 @@ func Router() *gin.Engine {
 	r := gin.Default()
 	r.POST("/greet", Greet)
 	r.POST("/storeinmongo", StoreInMongo)
+	r.POST("/storeinredis", StoreInRedis)
 	return r
 }
