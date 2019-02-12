@@ -59,14 +59,15 @@ func TestGreeterService(t *testing.T) {
 		mredis, err := miniredis.Run()
 		asserting.NoError(err)
 		defer mredis.Close()
-		redisPool = InitRedisPool(mredis.Addr())
+		patches := gomonkey.ApplyGlobalVar(&redisPool, InitRedisPool(mredis.Addr()))
+		defer patches.Reset()
 
 		key := "name"
 		value := "tester"
 
 		s := server{}
 		resp, err := s.StoreInRedis(context.Background(), &pb.StoreInRedisRequest{
-			Key: key,
+			Key:   key,
 			Value: value,
 		})
 		asserting.NoError(err)

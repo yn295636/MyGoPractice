@@ -2,11 +2,16 @@ package main
 
 import (
 	"fmt"
+	"github.com/yn295636/MyGoPractice/db"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 const (
 	Port = 8080
+	DbAddr = "127.0.0.1:3306"
+	DbUser = "tester"
+	DbPassword = "tester"
 )
 
 var (
@@ -15,6 +20,11 @@ var (
 
 func main() {
 	grpcCF = NewGrpcClientFactory()
+
+	err := db.InitDb(DbAddr, DbUser, DbPassword, db.DbVer2)
+	if err != nil {
+		log.Fatalf("Init Db failed, %v", err)
+	}
 
 	r := Router()
 	r.Run(fmt.Sprintf("0.0.0.0:%v", Port))
