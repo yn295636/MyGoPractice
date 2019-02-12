@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/yn295636/MyGoPractice/db"
 	"github.com/gin-gonic/gin"
+	"github.com/yn295636/MyGoPractice/db"
 	"log"
 )
 
 const (
-	Port = 8080
-	DbAddr = "127.0.0.1:3306"
-	DbUser = "tester"
+	Port       = 8080
+	DbAddr     = "127.0.0.1:3306"
+	DbUser     = "tester"
 	DbPassword = "tester"
 )
 

@@ -37,8 +37,8 @@ const (
 	MyMongoDb         = "mygopracticedb"
 	MyMongoCollection = "mygopracticecollection"
 	RedisPrefix       = "mygopractice"
-	MongoAddr = ":27017"
-	RedisAddr = "127.0.0.1:6379"
+	MongoAddr         = ":27017"
+	RedisAddr         = "127.0.0.1:6379"
 )
 
 var (

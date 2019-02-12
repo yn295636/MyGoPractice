@@ -133,7 +133,7 @@ func StoreInRedis(c *gin.Context) {
 	defer cancel()
 
 	resp, err := client.StoreInRedis(ctx, &pb.StoreInRedisRequest{
-		Key: body.Key,
+		Key:   body.Key,
 		Value: body.Value,
 	})
 	if err != nil {

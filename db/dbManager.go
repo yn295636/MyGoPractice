@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"time"
 )
 
 type TDbVersion int
@@ -14,7 +15,7 @@ const (
 	TblMeta                   = "meta"
 	TblUser                   = "user"
 	TblPhone                  = "phone"
-	MetaSchema                = "version INT(32) NOT NULL"
+	MetaSchema                = "version INT(8) NOT NULL UNIQUE, update_time INT(10) UNSIGNED NOT NULL"
 	DbVer1         TDbVersion = 1
 	DbVer2         TDbVersion = 2
 )
@@ -77,25 +78,14 @@ func alterTableInTx(dbTx *sql.Tx, tableName, modifiedSchema string) error {
 }
 
 func getCurrentDbVersion(dbConn *sql.DB) (TDbVersion, error) {
-	var count uint
-	sqlStat1 := fmt.Sprintf("SELECT COUNT(version) FROM %v", TblMeta)
-	row1 := dbConn.QueryRow(sqlStat1)
-	err := row1.Scan(&count)
-	if count == 0 {
-		sqlStat2 := fmt.Sprintf("INSERT INTO %v (version) VALUES (?)", TblMeta)
-		_, err = dbConn.Exec(sqlStat2, 0)
-		if err != nil {
-			log.Printf("Set db version to 0 failed, %v", err)
-			return 1000000, err
-		}
-		return 0, nil
-	}
-
 	var result TDbVersion
-	sqlState := fmt.Sprintf("SELECT version FROM %v", TblMeta)
+	sqlState := fmt.Sprintf("SELECT version FROM %v ORDER BY version DESC LIMIT 1", TblMeta)
 	row := dbConn.QueryRow(sqlState)
-	err = row.Scan(&result)
+	err := row.Scan(&result)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		}
 		log.Printf("Query db version failed, %v", err)
 		return 1000000, err
 	}
@@ -103,8 +93,8 @@ func getCurrentDbVersion(dbConn *sql.DB) (TDbVersion, error) {
 }
 
 func updateDbVersion(dbTx *sql.Tx, ver TDbVersion) error {
-	sqlStat := fmt.Sprintf("UPDATE %v SET version=?", TblMeta)
-	_, err := dbTx.Exec(sqlStat, ver)
+	sqlStat := fmt.Sprintf("INSERT INTO %v (version, update_time) VALUES (?,?)", TblMeta)
+	_, err := dbTx.Exec(sqlStat, ver, time.Now().Unix())
 	return err
 }
 

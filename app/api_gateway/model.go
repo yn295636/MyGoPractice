@@ -16,7 +16,7 @@ type StoreInMongoResp struct {
 }
 
 type StoreInRedisReq struct {
-	Key string `json:"key" form:"key" binding:"required" example:"name"`
+	Key   string `json:"key" form:"key" binding:"required" example:"name"`
 	Value string `json:"value" form:"value" binding:"required" example:"Peter"`
 }
 
