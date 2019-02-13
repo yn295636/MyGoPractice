@@ -123,14 +123,6 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:9172cf08abcedf7821d0d8eb71ffbd8d4f450dd5088107bcef9d9fee77d20395"
-  name = "github.com/grpc/grpc-go"
-  packages = ["status"]
-  pruneopts = "UT"
-  revision = "a02b0774206b209466313a0b525d2c738fe407eb"
-  version = "v1.18.0"
-
-[[projects]]
   digest = "1:3e551bbb3a7c0ab2a2bf4660e7fcad16db089fdcfbb44b0199e62838038623ea"
   name = "github.com/json-iterator/go"
   packages = ["."]
@@ -402,13 +394,13 @@
     "github.com/golang/mock/gomock",
     "github.com/golang/protobuf/proto",
     "github.com/gomodule/redigo/redis",
-    "github.com/grpc/grpc-go/status",
     "github.com/mongodb/mongo-go-driver/mongo",
     "github.com/mongodb/mongo-go-driver/mongo/options",
     "github.com/stretchr/testify/assert",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
+    "google.golang.org/grpc/status",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

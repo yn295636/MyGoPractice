@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/grpc/grpc-go/status"
 	pb "github.com/yn295636/MyGoPractice/proto"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"log"
 	"strings"
 )
@@ -29,12 +29,12 @@ func (s *server) StoreInMongo(ctx context.Context, in *pb.StoreInMongoRequest) (
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(in.Data), &data); err != nil {
 		log.Printf("Json unmarshal error, %v", err)
-		return nil, err
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	if _, err := mongoClient.Database(MyMongoDb).Collection(MyMongoCollection).InsertOne(context.Background(), data); err != nil {
 		log.Printf("Insert data into mongo failed, %v", err)
-		return out, err
+		return out, status.Error(codes.Internal, err.Error())
 	}
 	out.Result = 1
 	return out, nil
@@ -50,7 +50,7 @@ func (s *server) StoreInRedis(ctx context.Context, in *pb.StoreInRedisRequest) (
 	if _, err := redisConn.Do("SET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key), in.Value);
 		err != nil {
 		log.Printf("Insert data into redis failed, %v", err)
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	out.Result = 1
 	return out, nil
@@ -74,7 +74,7 @@ func (s *server) StorePhoneInDb(ctx context.Context, in *pb.StorePhoneInDbReques
 	var out *pb.StorePhoneInDbReply
 	id, err := StorePhone(in)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	out = &pb.StorePhoneInDbReply{
 		Id: id,
