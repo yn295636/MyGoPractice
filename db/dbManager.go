@@ -2,23 +2,30 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"sync"
 	"time"
 )
 
 type TDbVersion int
 
 const (
-	DbMyGoPractice            = "mygopractice"
-	TblMeta                   = "meta"
-	TblUser                   = "user"
-	TblPhone                  = "phone"
-	MetaSchema                = "version INT(8) NOT NULL UNIQUE, update_time INT(10) UNSIGNED NOT NULL"
-	DbVer1         TDbVersion = 1
-	DbVer2         TDbVersion = 2
+	DbMyGoPractice = "mygopractice"
+	tblMeta        = "meta"
+	TblUser        = "user"
+	TblPhone       = "phone"
+	metaSchema     = "version INT(8) NOT NULL UNIQUE, update_time INT(10) UNSIGNED NOT NULL"
+
+	DbVer1      TDbVersion = 1
+	DbVer2      TDbVersion = 2
+	DbVer3      TDbVersion = 3
+	DbLatestVer TDbVersion = DbVer3
 )
+
+var mapDB sync.Map
 
 func connectDbRoot(dbAddr, dbUser, dbPassword string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", fmt.Sprintf(
@@ -52,34 +59,9 @@ func connectDbWithName(dbAddr, dbUser, dbPassword, dbName string) (*sql.DB, erro
 	return db, nil
 }
 
-func createTable(dbConn *sql.DB, tableName, tableSchema string) error {
-	sqlStat := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %v(\n%v\n)\nCOLLATE='utf8mb4_unicode_ci'\nENGINE=InnoDB",
-		tableName, tableSchema)
-	_, err := dbConn.Exec(sqlStat)
-	if err != nil {
-		log.Printf("Create table %v failed, %v", tableName, err)
-		return err
-	}
-	return nil
-}
-
-func createTableInTx(dbTx *sql.Tx, tableName, tableSchema string) error {
-	sqlStat := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %v(\n%v\n)\nCOLLATE='utf8mb4_unicode_ci'\nENGINE=InnoDB",
-		tableName, tableSchema)
-	_, err := dbTx.Exec(sqlStat)
-	return err
-}
-
-func alterTableInTx(dbTx *sql.Tx, tableName, modifiedSchema string) error {
-	sqlStat := fmt.Sprintf("ALTER TABLE %v \n%v",
-		tableName, modifiedSchema)
-	_, err := dbTx.Exec(sqlStat)
-	return err
-}
-
 func getCurrentDbVersion(dbConn *sql.DB) (TDbVersion, error) {
 	var result TDbVersion
-	sqlState := fmt.Sprintf("SELECT version FROM %v ORDER BY version DESC LIMIT 1", TblMeta)
+	sqlState := fmt.Sprintf("SELECT version FROM %v ORDER BY version DESC LIMIT 1", tblMeta)
 	row := dbConn.QueryRow(sqlState)
 	err := row.Scan(&result)
 	if err != nil {
@@ -93,8 +75,11 @@ func getCurrentDbVersion(dbConn *sql.DB) (TDbVersion, error) {
 }
 
 func updateDbVersion(dbTx *sql.Tx, ver TDbVersion) error {
-	sqlStat := fmt.Sprintf("INSERT INTO %v (version, update_time) VALUES (?,?)", TblMeta)
-	_, err := dbTx.Exec(sqlStat, ver, time.Now().Unix())
+	kvMap := map[string]interface{}{
+		"version":     ver,
+		"update_time": time.Now().Unix(),
+	}
+	_, err := InsertIntoByTx(dbTx, tblMeta, kvMap)
 	return err
 }
 
@@ -104,22 +89,12 @@ func updateMyGoPracticeToVer1(dbConn *sql.DB) error {
 		log.Printf("DbMyGoPractice Tx begin error, %v", err)
 		return err
 	}
-	defer func() {
-		if p := recover(); p != nil {
-			tx.Rollback()
-			panic(p)
-		}
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
+	defer TxPost(tx, err)
 
 	userSchema := `id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			username VARCHAR(16) NOT NULL DEFAULT '',
 			PRIMARY KEY (id)`
-	err = createTableInTx(tx, TblUser, userSchema)
+	err = createTableByTx(tx, TblUser, userSchema)
 	if err != nil {
 		log.Printf("Create table user failed, %v", err)
 		return err
@@ -140,23 +115,13 @@ func updateMyGoPracticeToVer2(dbConn *sql.DB) error {
 		log.Printf("DbMyGoPractice Tx begin error, %v", err)
 		return err
 	}
-	defer func() {
-		if p := recover(); p != nil {
-			tx.Rollback()
-			panic(p)
-		}
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
+	defer TxPost(tx, err)
 
 	phoneSchema := `id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			phone VARCHAR(16) NOT NULL DEFAULT '',
 			uid BIGINT(20) UNSIGNED NOT NULL,
 			PRIMARY KEY (id)`
-	err = createTableInTx(tx, TblPhone, phoneSchema)
+	err = createTableByTx(tx, TblPhone, phoneSchema)
 	if err != nil {
 		log.Printf("Create table phone failed, %v", err)
 		return err
@@ -164,13 +129,37 @@ func updateMyGoPracticeToVer2(dbConn *sql.DB) error {
 
 	userAddSchema := `ADD COLUMN gender TINYINT(3) NOT NULL DEFAULT 0 COMMENT '0:unknown, 1:male, 2:female',
 			ADD COLUMN age TINYINT(3) NOT NULL DEFAULT 0`
-	err = alterTableInTx(tx, TblUser, userAddSchema)
+	err = alterTableByTx(tx, TblUser, userAddSchema)
 	if err != nil {
 		log.Printf("Alter table user failed, %v", err)
 		return err
 	}
 
 	err = updateDbVersion(tx, DbVer2)
+	if err != nil {
+		log.Printf("Update db version failed, %v", err)
+		return err
+	}
+	return nil
+}
+
+func updateMyGoPracticeToVer3(dbConn *sql.DB) error {
+	var err error
+	tx, err := dbConn.Begin()
+	if err != nil {
+		log.Printf("DbMyGoPractice Tx begin error, %v", err)
+		return err
+	}
+	defer TxPost(tx, err)
+
+	userAlterSchema := `ADD CONSTRAINT UNIQUE INDEX idx_username (username)`
+	err = alterTableByTx(tx, TblUser, userAlterSchema)
+	if err != nil {
+		log.Printf("Alter table user failed, %v", err)
+		return err
+	}
+
+	err = updateDbVersion(tx, DbVer3)
 	if err != nil {
 		log.Printf("Update db version failed, %v", err)
 		return err
@@ -206,9 +195,8 @@ func InitDb(dbAddr, dbUser, dbPassword string, targetVersion TDbVersion) error {
 		log.Printf("Connect db DbMyGoPractice failed, %v", err)
 		return err
 	}
-	defer dbMyGoPractice.Close()
 
-	err = createTable(dbMyGoPractice, TblMeta, MetaSchema)
+	err = createTable(dbMyGoPractice, tblMeta, metaSchema)
 	if err != nil {
 		log.Printf("Create table meta failed, %v", err)
 		return err
@@ -236,5 +224,34 @@ func InitDb(dbAddr, dbUser, dbPassword string, targetVersion TDbVersion) error {
 		}
 	}
 
+	if curVersion < DbVer3 && DbVer3 <= targetVersion {
+		err = updateMyGoPracticeToVer3(dbMyGoPractice)
+		if err != nil {
+			log.Printf("Update DbMyGoPractice to version 3 failed, %v", err)
+			return err
+		}
+	}
+
+	mapDB.Store(DbMyGoPractice, dbMyGoPractice)
 	return nil
+}
+
+func TxPost(tx *sql.Tx, err error) {
+	if p := recover(); p != nil {
+		tx.Rollback()
+		panic(p)
+	}
+	if err != nil {
+		tx.Rollback()
+	} else {
+		tx.Commit()
+	}
+}
+
+func GetDb(dbName string) *sql.DB {
+	db, ok := mapDB.Load(dbName)
+	if !ok {
+		panic(errors.New("no db exists"))
+	}
+	return db.(*sql.DB)
 }

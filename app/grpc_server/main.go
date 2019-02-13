@@ -20,9 +20,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/yn295636/MyGoPractice/db"
 	"log"
 	"net"
 	"time"
@@ -39,6 +39,9 @@ const (
 	RedisPrefix       = "mygopractice"
 	MongoAddr         = ":27017"
 	RedisAddr         = "127.0.0.1:6379"
+	DbAddr            = "127.0.0.1:3306"
+	DbUser            = "tester"
+	DbPassword        = "tester"
 )
 
 var (
@@ -46,62 +49,26 @@ var (
 	redisPool   *redis.Pool
 )
 
-// server is used to implement helloworld.GreeterServer.
-type server struct{}
-
-// SayHello implements helloworld.GreeterServer
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.Name)
-	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
-}
-
-func (s *server) StoreInMongo(ctx context.Context, in *pb.StoreInMongoRequest) (*pb.StoreInMongoReply, error) {
-	log.Printf("Received: %v", in.Data)
-	var out *pb.StoreInMongoReply
-	out = &pb.StoreInMongoReply{
-		Result: 0,
-	}
-	var data map[string]interface{}
-	if err := json.Unmarshal([]byte(in.Data), &data); err != nil {
-		log.Printf("Json unmarshal error, %v", err)
-		return out, err
-	}
-
-	if _, err := mongoClient.Database(MyMongoDb).Collection(MyMongoCollection).InsertOne(context.Background(), data); err != nil {
-		log.Printf("Insert data into mongo failed, %v", err)
-		return out, err
-	}
-	out.Result = 1
-	return out, nil
-}
-
-func (s *server) StoreInRedis(ctx context.Context, in *pb.StoreInRedisRequest) (*pb.StoreInRedisReply, error) {
-	var out *pb.StoreInRedisReply
-	out = &pb.StoreInRedisReply{
-		Result: 0,
-	}
-	redisConn := redisPool.Get()
-	if _, err := redisConn.Do("SET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key), in.Value);
-		err != nil {
-		log.Printf("Insert data into redis failed, %v", err)
-		return out, err
-	}
-	out.Result = 1
-	return out, nil
-}
-
 func main() {
-	mongoClient, _ = InitMongoClient(MongoAddr)
+	var err error
+	mongoClient, err = InitMongoClient(MongoAddr)
+	if err != nil {
+		log.Fatalf("Init Mongo failed, %v", err)
+	}
 	redisPool = InitRedisPool(RedisAddr)
+	err = db.InitDb(DbAddr, DbUser, DbPassword, db.DbLatestVer)
+	if err != nil {
+		log.Fatalf("Init Db failed, %v", err)
+	}
 
 	lis, err := net.Listen("tcp", Port)
 	if err != nil {
-		log.Printf("failed to listen: %v", err)
+		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
 	pb.RegisterGreeterServer(s, &server{})
 	if err := s.Serve(lis); err != nil {
-		log.Printf("failed to serve: %v", err)
+		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
@@ -113,11 +80,11 @@ func InitMongoClient(mongoAddr string) (*mongo.Client, error) {
 		"",
 		"",
 		mongoAddr)); err != nil {
-		log.Fatalf("Init mongo client error, %v", err)
+		log.Printf("Init mongo client error, %v", err)
 		return nil, err
 	}
 	if err = clt.Connect(context.TODO()); err != nil {
-		log.Fatalf("Connect mongo db error, %v", err)
+		log.Printf("Connect mongo db error, %v", err)
 		return nil, err
 	}
 	return clt, nil

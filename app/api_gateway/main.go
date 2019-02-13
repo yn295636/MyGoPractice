@@ -21,7 +21,7 @@ var (
 func main() {
 	grpcCF = NewGrpcClientFactory()
 
-	err := db.InitDb(DbAddr, DbUser, DbPassword, db.DbVer2)
+	err := db.InitDb(DbAddr, DbUser, DbPassword, db.DbLatestVer)
 	if err != nil {
 		log.Fatalf("Init Db failed, %v", err)
 	}
@@ -35,5 +35,6 @@ func Router() *gin.Engine {
 	r.POST("/greet", Greet)
 	r.POST("/storeinmongo", StoreInMongo)
 	r.POST("/storeinredis", StoreInRedis)
+	r.POST("/storeuserindb", StoreUserInDb)
 	return r
 }
