@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"github.com/stretchr/testify/assert"
-	pb "github.com/yn295636/MyGoPractice/proto"
+	pb "github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"reflect"
 	"testing"
 )

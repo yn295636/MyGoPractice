@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/yn295636/MyGoPractice/db"
-	pb "github.com/yn295636/MyGoPractice/proto"
+	pb "github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"log"
 )
 

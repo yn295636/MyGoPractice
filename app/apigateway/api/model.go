@@ -1,4 +1,4 @@
-package main
+package api
 
 type GreetReq struct {
 	Name string `json:"name" form:"name" binding:"required" example:"Peter"`

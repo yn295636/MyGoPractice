@@ -4,26 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	pb "github.com/yn295636/MyGoPractice/proto"
+	"github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
 	"strings"
 )
 
-// server is used to implement helloworld.GreeterServer.
+// server is used to implement greeter_service.GreeterServer.
 type server struct{}
 
-// SayHello implements helloworld.GreeterServer
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+// SayHello implements greeter_service.GreeterServer
+func (s *server) SayHello(ctx context.Context, in *greeter_service.HelloRequest) (*greeter_service.HelloReply, error) {
 	log.Printf("SayHello received: %v", in.Name)
-	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
+	return &greeter_service.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
-func (s *server) StoreInMongo(ctx context.Context, in *pb.StoreInMongoRequest) (*pb.StoreInMongoReply, error) {
+func (s *server) StoreInMongo(ctx context.Context, in *greeter_service.StoreInMongoRequest) (*greeter_service.StoreInMongoReply, error) {
 	log.Printf("StoreInMongo received: %v", in.Data)
-	var out *pb.StoreInMongoReply
-	out = &pb.StoreInMongoReply{
+	var out *greeter_service.StoreInMongoReply
+	out = &greeter_service.StoreInMongoReply{
 		Result: 0,
 	}
 	var data map[string]interface{}
@@ -40,10 +40,10 @@ func (s *server) StoreInMongo(ctx context.Context, in *pb.StoreInMongoRequest) (
 	return out, nil
 }
 
-func (s *server) StoreInRedis(ctx context.Context, in *pb.StoreInRedisRequest) (*pb.StoreInRedisReply, error) {
+func (s *server) StoreInRedis(ctx context.Context, in *greeter_service.StoreInRedisRequest) (*greeter_service.StoreInRedisReply, error) {
 	log.Printf("StoreInRedis received: %v", in)
-	var out *pb.StoreInRedisReply
-	out = &pb.StoreInRedisReply{
+	var out *greeter_service.StoreInRedisReply
+	out = &greeter_service.StoreInRedisReply{
 		Result: 0,
 	}
 	redisConn := redisPool.Get()
@@ -55,10 +55,10 @@ func (s *server) StoreInRedis(ctx context.Context, in *pb.StoreInRedisRequest) (
 	return out, nil
 }
 
-func (s *server) StoreUserInDb(ctx context.Context, in *pb.StoreUserInDbRequest) (*pb.StoreUserInDbReply, error) {
+func (s *server) StoreUserInDb(ctx context.Context, in *greeter_service.StoreUserInDbRequest) (*greeter_service.StoreUserInDbReply, error) {
 	log.Printf("StoreUserInDb received: %v", in)
-	var out *pb.StoreUserInDbReply
-	out = &pb.StoreUserInDbReply{}
+	var out *greeter_service.StoreUserInDbReply
+	out = &greeter_service.StoreUserInDbReply{}
 	id, err := StoreUser(in)
 	if err != nil && strings.Contains(err.Error(), "Error 1062") {
 		log.Printf("username already exists")
@@ -71,9 +71,9 @@ func (s *server) StoreUserInDb(ctx context.Context, in *pb.StoreUserInDbRequest)
 	return out, nil
 }
 
-func (s *server) StorePhoneInDb(ctx context.Context, in *pb.StorePhoneInDbRequest) (*pb.StorePhoneInDbReply, error) {
+func (s *server) StorePhoneInDb(ctx context.Context, in *greeter_service.StorePhoneInDbRequest) (*greeter_service.StorePhoneInDbReply, error) {
 	log.Printf("StorePhoneInDb received: %v", in)
-	var out *pb.StorePhoneInDbReply
+	var out *greeter_service.StorePhoneInDbReply
 	id, err := StorePhone(in)
 	if err != nil && strings.Contains(err.Error(), "Error 1062") {
 		log.Printf("phone already exists")
@@ -82,16 +82,16 @@ func (s *server) StorePhoneInDb(ctx context.Context, in *pb.StorePhoneInDbReques
 		log.Printf("Insert phone into db failed, %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	out = &pb.StorePhoneInDbReply{
+	out = &greeter_service.StorePhoneInDbReply{
 		Id: id,
 	}
 	return out, nil
 }
 
-func (s *server) GetUserFromDb(ctx context.Context, in *pb.GetUserFromDbRequest) (*pb.GetUserFromDbReply, error) {
+func (s *server) GetUserFromDb(ctx context.Context, in *greeter_service.GetUserFromDbRequest) (*greeter_service.GetUserFromDbReply, error) {
 	log.Printf("GetUserFromDb received: %v", in)
 	var (
-		out *pb.GetUserFromDbReply
+		out *greeter_service.GetUserFromDbReply
 		err error
 	)
 	out, err = QueryUserByUid(in)

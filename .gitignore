@@ -1,6 +1,6 @@
 .idea/
 vendor/
 *.pb.go
-
-app/api_gateway/api_gateway
-app/grpc_server/grpc_server
+**/.DS_Store
+app/apigateway/apigateway
+app/greeter_service/greeter_service

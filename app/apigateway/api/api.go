@@ -1,10 +1,11 @@
-package main
+package api
 
 import (
 	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	pb "github.com/yn295636/MyGoPractice/proto"
+	"github.com/yn295636/MyGoPractice/app/apigateway/grpcfactory"
+	pb "github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
@@ -24,7 +25,7 @@ func Greet(c *gin.Context) {
 		return
 	}
 
-	client, err, release := grpcCF.NewGreeterClient()
+	client, err, release := grpcfactory.NewGreeterClient()
 	if err != nil {
 		log.Printf("Failed to get greeter client, %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
@@ -76,7 +77,7 @@ func StoreInMongo(c *gin.Context) {
 		return
 	}
 
-	client, err, release := grpcCF.NewGreeterClient()
+	client, err, release := grpcfactory.NewGreeterClient()
 	if err != nil {
 		log.Printf("Failed to get greeter client, %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
@@ -119,7 +120,7 @@ func StoreInRedis(c *gin.Context) {
 		return
 	}
 
-	client, err, release := grpcCF.NewGreeterClient()
+	client, err, release := grpcfactory.NewGreeterClient()
 	if err != nil {
 		log.Printf("Failed to get greeter client, %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
@@ -163,7 +164,7 @@ func StoreUserInDb(c *gin.Context) {
 		return
 	}
 
-	client, err, release := grpcCF.NewGreeterClient()
+	client, err, release := grpcfactory.NewGreeterClient()
 	if err != nil {
 		log.Printf("Failed to get greeter client, %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
@@ -226,7 +227,7 @@ func StoreUserPhoneInDb(c *gin.Context) {
 		return
 	}
 
-	client, err, release := grpcCF.NewGreeterClient()
+	client, err, release := grpcfactory.NewGreeterClient()
 	if err != nil {
 		log.Printf("Failed to get greeter client, %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
