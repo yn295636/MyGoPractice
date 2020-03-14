@@ -92,7 +92,7 @@ func updateMyGoPracticeToVer1(dbConn *sql.DB) error {
 	defer TxPost(tx, err)
 
 	userSchema := `id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			username VARCHAR(16) NOT NULL DEFAULT '',
+			username VARCHAR(16) NOT NULL,
 			PRIMARY KEY (id)`
 	err = createTableByTx(tx, TblUser, userSchema)
 	if err != nil {
@@ -118,7 +118,7 @@ func updateMyGoPracticeToVer2(dbConn *sql.DB) error {
 	defer TxPost(tx, err)
 
 	phoneSchema := `id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			phone VARCHAR(16) NOT NULL DEFAULT '',
+			phone VARCHAR(16) NOT NULL,
 			uid BIGINT(20) UNSIGNED NOT NULL,
 			PRIMARY KEY (id)`
 	err = createTableByTx(tx, TblPhone, phoneSchema)
@@ -156,6 +156,13 @@ func updateMyGoPracticeToVer3(dbConn *sql.DB) error {
 	err = alterTableByTx(tx, TblUser, userAlterSchema)
 	if err != nil {
 		log.Printf("Alter table user failed, %v", err)
+		return err
+	}
+
+	phoneAlterSchema := `ADD CONSTRAINT UNIQUE INDEX idx_phone (phone)`
+	err = alterTableByTx(tx, TblPhone, phoneAlterSchema)
+	if err != nil {
+		log.Printf("Alter table phone failed, %v", err)
 		return err
 	}
 

@@ -34,6 +34,13 @@ type StoreUserInDbResp struct {
 	Uid int64 `json:"uid" example:"1"`
 }
 
+type StoreUserPhoneInDbReq struct {
+	Phone string `json:"phone" form:"phone" binding:"required" example:"+6512345678"`
+}
+
+type StoreUserPhoneInDbResp struct {
+}
+
 type ErrorRsp struct {
 	Code    int32  `json:"code" example:"404" format:"int32"`
 	Message string `json:"message" example:"It's an error message for developer"`

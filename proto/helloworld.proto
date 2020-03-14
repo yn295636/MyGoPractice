@@ -29,6 +29,8 @@ service Greeter {
     }
     rpc StorePhoneInDb (StorePhoneInDbRequest) returns (StorePhoneInDbReply) {
     }
+    rpc GetUserFromDb (GetUserFromDbRequest) returns (GetUserFromDbReply) {
+    }
 }
 
 // The request message containing the user's name.
@@ -77,4 +79,15 @@ message StorePhoneInDbRequest {
 
 message StorePhoneInDbReply {
     int64 id = 1;
+}
+
+message GetUserFromDbRequest {
+    int64 uid = 1;
+}
+
+message GetUserFromDbReply {
+    int64 uid = 1;
+    string username = 2;
+    int32 gender = 3;
+    int32 age = 4;
 }

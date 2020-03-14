@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/yn295636/MyGoPractice/db"
 	pb "github.com/yn295636/MyGoPractice/proto"
 	"log"
@@ -48,4 +49,27 @@ func StorePhone(in *pb.StorePhoneInDbRequest) (int64, error) {
 		return 0, err
 	}
 	return result.LastInsertId()
+}
+
+func QueryUserByUid(in *pb.GetUserFromDbRequest) (*pb.GetUserFromDbReply, error) {
+	dbConn := db.GetDb(db.DbMyGoPractice)
+	sqlStat := fmt.Sprintf("SELECT username,gender,age FROM %v WHERE id=?", db.TblUser)
+	row := dbConn.QueryRow(sqlStat, in.Uid)
+	var (
+		username string
+		gender   int32
+		age      int32
+	)
+	err := row.Scan(&username, &gender, &age)
+	if err != nil {
+		log.Printf("Query from %v failed, %v", db.TblUser, err)
+		return nil, err
+	}
+
+	var out = &pb.GetUserFromDbReply{
+		Username: username,
+		Gender:   gender,
+		Age:      age,
+	}
+	return out, nil
 }

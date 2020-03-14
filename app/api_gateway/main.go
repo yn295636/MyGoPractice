@@ -3,15 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/yn295636/MyGoPractice/db"
-	"log"
 )
 
 const (
-	Port       = 8080
-	DbAddr     = "127.0.0.1:3306"
-	DbUser     = "tester"
-	DbPassword = "tester"
+	Port = 8080
 )
 
 var (
@@ -21,11 +16,6 @@ var (
 func main() {
 	grpcCF = NewGrpcClientFactory()
 
-	err := db.InitDb(DbAddr, DbUser, DbPassword, db.DbLatestVer)
-	if err != nil {
-		log.Fatalf("Init Db failed, %v", err)
-	}
-
 	r := Router()
 	r.Run(fmt.Sprintf("0.0.0.0:%v", Port))
 }
@@ -33,8 +23,9 @@ func main() {
 func Router() *gin.Engine {
 	r := gin.Default()
 	r.POST("/greet", Greet)
-	r.POST("/storeinmongo", StoreInMongo)
-	r.POST("/storeinredis", StoreInRedis)
-	r.POST("/storeuserindb", StoreUserInDb)
+	r.POST("/mongo", StoreInMongo)
+	r.POST("/redis", StoreInRedis)
+	r.POST("/db/users", StoreUserInDb)
+	r.POST("/db/users/:uid/phones", StoreUserPhoneInDb)
 	return r
 }

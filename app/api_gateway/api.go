@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -98,7 +99,7 @@ func StoreInMongo(c *gin.Context) {
 		log.Printf("Failed to store in mongo, %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
 			Code:    http.StatusInternalServerError,
-			Message: "server error",
+			Message: err.Error(),
 		})
 		return
 	}
@@ -142,7 +143,7 @@ func StoreInRedis(c *gin.Context) {
 		log.Printf("Failed to store in redis, %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
 			Code:    http.StatusInternalServerError,
-			Message: "server error",
+			Message: err.Error(),
 		})
 		return
 	}
@@ -194,7 +195,7 @@ func StoreUserInDb(c *gin.Context) {
 		log.Printf("Failed to store user in db, %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
 			Code:    http.StatusInternalServerError,
-			Message: "server error",
+			Message: err.Error(),
 		})
 		return
 	}
@@ -204,5 +205,81 @@ func StoreUserInDb(c *gin.Context) {
 }
 
 func StoreUserPhoneInDb(c *gin.Context) {
+	uidStr := c.Param("uid")
+	uid, err := strconv.ParseInt(uidStr, 10, 64)
+	if err != nil {
+		log.Printf("Failed to parse uid from path, %v", err)
+		c.JSON(http.StatusBadRequest, ErrorRsp{
+			Code:    http.StatusBadRequest,
+			Message: "input error",
+		})
+		return
+	}
 
+	var body StoreUserPhoneInDbReq
+	if err := c.ShouldBind(&body); err != nil {
+		log.Printf("Failed to bind to StoreUserPhoneInDbReq, %v", err)
+		c.JSON(http.StatusBadRequest, ErrorRsp{
+			Code:    http.StatusBadRequest,
+			Message: "input error",
+		})
+		return
+	}
+
+	client, err, release := grpcCF.NewGreeterClient()
+	if err != nil {
+		log.Printf("Failed to get greeter client, %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorRsp{
+			Code:    http.StatusInternalServerError,
+			Message: "server error",
+		})
+		return
+	}
+	defer release()
+
+	ctx, cancel := context.WithTimeout(
+		c.Request.Context(),
+		time.Duration(2*time.Second))
+	defer cancel()
+
+	_, err = client.GetUserFromDb(ctx, &pb.GetUserFromDbRequest{Uid: uid})
+	if err != nil {
+		if s, ok := status.FromError(err); ok && s.Code() == codes.NotFound {
+			c.JSON(http.StatusBadRequest, ErrorRsp{
+				Code:    http.StatusBadRequest,
+				Message: s.Message(),
+			})
+			return
+		}
+
+		log.Printf("Failed to get user from db, %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorRsp{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	_, err = client.StorePhoneInDb(ctx, &pb.StorePhoneInDbRequest{
+		Uid:   uid,
+		Phone: body.Phone,
+	})
+	if err != nil {
+		log.Printf("Failed to store phone into db, %v", err)
+		if s, ok := status.FromError(err); ok && s.Code() == codes.AlreadyExists {
+			c.JSON(http.StatusBadRequest, ErrorRsp{
+				Code:    http.StatusBadRequest,
+				Message: s.Message(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, ErrorRsp{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, StoreUserPhoneInDbResp{})
 }

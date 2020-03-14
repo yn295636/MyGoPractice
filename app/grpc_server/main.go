@@ -41,7 +41,7 @@ const (
 	RedisAddr         = "127.0.0.1:6379"
 	DbAddr            = "127.0.0.1:3306"
 	DbUser            = "tester"
-	DbPassword        = "tester"
+	DbPassword        = "test123"
 )
 
 var (
@@ -51,11 +51,14 @@ var (
 
 func main() {
 	var err error
+
 	mongoClient, err = InitMongoClient(MongoAddr)
 	if err != nil {
 		log.Fatalf("Init Mongo failed, %v", err)
 	}
+	
 	redisPool = InitRedisPool(RedisAddr)
+
 	err = db.InitDb(DbAddr, DbUser, DbPassword, db.DbLatestVer)
 	if err != nil {
 		log.Fatalf("Init Db failed, %v", err)

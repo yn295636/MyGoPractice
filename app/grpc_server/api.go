@@ -16,12 +16,12 @@ type server struct{}
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.Name)
+	log.Printf("SayHello received: %v", in.Name)
 	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
 func (s *server) StoreInMongo(ctx context.Context, in *pb.StoreInMongoRequest) (*pb.StoreInMongoReply, error) {
-	log.Printf("Received: %v", in.Data)
+	log.Printf("StoreInMongo received: %v", in.Data)
 	var out *pb.StoreInMongoReply
 	out = &pb.StoreInMongoReply{
 		Result: 0,
@@ -41,14 +41,13 @@ func (s *server) StoreInMongo(ctx context.Context, in *pb.StoreInMongoRequest) (
 }
 
 func (s *server) StoreInRedis(ctx context.Context, in *pb.StoreInRedisRequest) (*pb.StoreInRedisReply, error) {
-	log.Printf("Received: %v", in)
+	log.Printf("StoreInRedis received: %v", in)
 	var out *pb.StoreInRedisReply
 	out = &pb.StoreInRedisReply{
 		Result: 0,
 	}
 	redisConn := redisPool.Get()
-	if _, err := redisConn.Do("SET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key), in.Value);
-		err != nil {
+	if _, err := redisConn.Do("SET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key), in.Value); err != nil {
 		log.Printf("Insert data into redis failed, %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -57,27 +56,50 @@ func (s *server) StoreInRedis(ctx context.Context, in *pb.StoreInRedisRequest) (
 }
 
 func (s *server) StoreUserInDb(ctx context.Context, in *pb.StoreUserInDbRequest) (*pb.StoreUserInDbReply, error) {
-	log.Printf("Received: %v", in)
+	log.Printf("StoreUserInDb received: %v", in)
 	var out *pb.StoreUserInDbReply
 	out = &pb.StoreUserInDbReply{}
 	id, err := StoreUser(in)
 	if err != nil && strings.Contains(err.Error(), "Error 1062") {
 		log.Printf("username already exists")
 		return nil, status.Error(codes.AlreadyExists, "username already exists")
+	} else if err != nil {
+		log.Printf("Insert user into db failed, %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	out.Uid = id
 	return out, nil
 }
 
 func (s *server) StorePhoneInDb(ctx context.Context, in *pb.StorePhoneInDbRequest) (*pb.StorePhoneInDbReply, error) {
-	log.Printf("Received: %v", in)
+	log.Printf("StorePhoneInDb received: %v", in)
 	var out *pb.StorePhoneInDbReply
 	id, err := StorePhone(in)
-	if err != nil {
+	if err != nil && strings.Contains(err.Error(), "Error 1062") {
+		log.Printf("phone already exists")
+		return nil, status.Error(codes.AlreadyExists, "phone already exists")
+	} else if err != nil {
+		log.Printf("Insert phone into db failed, %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	out = &pb.StorePhoneInDbReply{
 		Id: id,
+	}
+	return out, nil
+}
+
+func (s *server) GetUserFromDb(ctx context.Context, in *pb.GetUserFromDbRequest) (*pb.GetUserFromDbReply, error) {
+	log.Printf("GetUserFromDb received: %v", in)
+	var (
+		out *pb.GetUserFromDbReply
+		err error
+	)
+	out, err = QueryUserByUid(in)
+	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
+		return nil, status.Error(codes.NotFound, "user doesn't exist")
+	} else if err != nil {
+		log.Printf("Query user by uid failed, %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return out, nil
 }
