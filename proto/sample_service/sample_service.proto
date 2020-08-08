@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package sample_service;
+
+// The sample service definition.
+service Sample {
+    rpc Multiply (MultiplyReq) returns (MultiplyResp) {
+    }
+    rpc GetUserById (GetUserByIdReq) returns (GetUserByIdResp) {
+    }
+}
+
+message MultiplyReq {
+    int32 a = 1;
+    int32 b = 2;
+}
+
+message MultiplyResp {
+    int64 result = 1;
+}
+
+message GetUserByIdReq {
+    uint64 uid = 1;
+}
+
+message GetUserByIdResp {
+    string name = 1;
+    enum Gender {
+        UNDEFINED = 0;
+        MALE = 1;
+        FEMALE = 2;
+    }
+    Gender gender = 2;
+    uint64 age = 3;
+}
