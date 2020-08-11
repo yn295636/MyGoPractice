@@ -8,6 +8,8 @@ service Sample {
     }
     rpc GetUserById (GetUserByIdReq) returns (GetUserByIdResp) {
     }
+    rpc CreateUserFromExternal (CreateUserFromExternalReq) returns (CreateUserFromExternalResp) {
+    }
 }
 
 message MultiplyReq {
@@ -20,7 +22,7 @@ message MultiplyResp {
 }
 
 message GetUserByIdReq {
-    uint64 uid = 1;
+    int32 uid = 1;
 }
 
 message GetUserByIdResp {
@@ -31,5 +33,13 @@ message GetUserByIdResp {
         FEMALE = 2;
     }
     Gender gender = 2;
-    uint64 age = 3;
+    uint32 age = 3;
+}
+
+message CreateUserFromExternalReq {
+    int32 externalUid = 1;
+}
+
+message CreateUserFromExternalResp {
+    int64 uid = 1;
 }

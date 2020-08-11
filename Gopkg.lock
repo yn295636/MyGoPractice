@@ -37,6 +37,14 @@
   version = "v2.0.0"
 
 [[projects]]
+  digest = "1:b1449b9376579662f9ae5865c8c54bff8fcfb1dde415983ddfb4c52d8ceee61c"
+  name = "github.com/dankinder/httpmock"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "089615b3f979812dcd1d625aaf508f36725fb63e"
+  version = "v1.0.1"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -123,6 +131,22 @@
   version = "v2.0.0"
 
 [[projects]]
+  digest = "1:80d8747c77f6b6c8e77232cd04aa93cbf4489836d47e487566d94e6ecbe23082"
+  name = "github.com/h2non/gock"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3ffff9b1aa8200275a5eb219c5f9c62bd27acb31"
+  version = "v1.0.15"
+
+[[projects]]
+  digest = "1:574f4e0c57e045c9d109d23c60c586b2198eaead53daa97ed5f65c616e22a9b0"
+  name = "github.com/h2non/parth"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b4df798d65426f8c8ab5ca5f9987aec5575d26c9"
+  version = "v2.0.1"
+
+[[projects]]
   digest = "1:3e551bbb3a7c0ab2a2bf4660e7fcad16db089fdcfbb44b0199e62838038623ea"
   name = "github.com/json-iterator/go"
   packages = ["."]
@@ -202,10 +226,19 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:5da8ce674952566deae4dbc23d07c85caafc6cfa815b0b3e03e41979cedb8750"
+  digest = "1:ac83cf90d08b63ad5f7e020ef480d319ae890c208f8524622a2f3136e2686b02"
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
+  version = "v0.1.1"
+
+[[projects]]
+  digest = "1:b762f96c1183763894e8dabbac5f8e8d5821754b6e2686a8c398a174b7a58ff5"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
+    "mock",
     "require",
   ]
   pruneopts = "UT"
@@ -391,15 +424,18 @@
     "github.com/agiledragon/gomonkey",
     "github.com/alicebob/miniredis",
     "github.com/appleboy/gofight",
+    "github.com/dankinder/httpmock",
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/json",
     "github.com/go-sql-driver/mysql",
     "github.com/golang/mock/gomock",
     "github.com/golang/protobuf/proto",
     "github.com/gomodule/redigo/redis",
+    "github.com/h2non/gock",
     "github.com/mongodb/mongo-go-driver/mongo",
     "github.com/mongodb/mongo-go-driver/mongo/options",
     "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/mock",
     "github.com/stretchr/testify/require",
     "golang.org/x/net/context",
     "google.golang.org/grpc",

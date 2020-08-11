@@ -4,3 +4,7 @@ vendor/
 **/.DS_Store
 app/apigateway/apigateway
 app/greeter_service/greeter_service
+pyvenv/
+*_pb2.py
+*_pb2_grpc.py
+**/__pycache__
