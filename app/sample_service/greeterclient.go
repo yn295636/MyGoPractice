@@ -2,10 +2,15 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"google.golang.org/grpc"
 	"log"
+)
+
+const (
+	GreeterServicePort = 50051
 )
 
 var (
@@ -15,7 +20,7 @@ var (
 
 func GetGreeterClient() (greeter_service.GreeterClient, error, func()) {
 	if !isTest {
-		conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+		conn, err := grpc.Dial(fmt.Sprintf("localhost:%v", GreeterServicePort), grpc.WithInsecure())
 		if err != nil {
 			log.Fatalf("did not connect: %v", err)
 			return nil, err, func() {}
