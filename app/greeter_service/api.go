@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gomodule/redigo/redis"
 	"github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -53,6 +54,22 @@ func (s *server) StoreInRedis(ctx context.Context, in *greeter_service.StoreInRe
 	}
 	out.Result = 1
 	return out, nil
+}
+
+func (s *server) GetFromRedis(ctx context.Context, in *greeter_service.GetFromRedisRequest) (*greeter_service.GetFromRedisReply, error) {
+	log.Printf("GetFromRedis received: %v", in)
+	var out *greeter_service.GetFromRedisReply
+	redisConn := redisPool.Get()
+	if result, err := redis.String(
+		redisConn.Do("GET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key)));
+		err != nil {
+		log.Printf("Get data from redis failed, %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	} else {
+		log.Printf("Got data from redis: %v", result)
+		out = &greeter_service.GetFromRedisReply{Value: result}
+		return out, nil
+	}
 }
 
 func (s *server) StoreUserInDb(ctx context.Context, in *greeter_service.StoreUserInDbRequest) (*greeter_service.StoreUserInDbReply, error) {

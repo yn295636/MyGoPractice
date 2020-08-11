@@ -22,7 +22,8 @@ const (
 	DbVer1      TDbVersion = 1
 	DbVer2      TDbVersion = 2
 	DbVer3      TDbVersion = 3
-	DbLatestVer TDbVersion = DbVer3
+	DbVer4      TDbVersion = 4
+	DbLatestVer TDbVersion = DbVer4
 )
 
 var mapDB sync.Map
@@ -174,6 +175,38 @@ func updateMyGoPracticeToVer3(dbConn *sql.DB) error {
 	return nil
 }
 
+func updateMyGoPracticeToVer4(dbConn *sql.DB) error {
+	var err error
+	tx, err := dbConn.Begin()
+	if err != nil {
+		log.Printf("DbMyGoPractice Tx begin error, %v", err)
+		return err
+	}
+	defer TxPost(tx, err)
+
+	userAlterSchema := `ADD external_uid BIGINT(20) UNSIGNED NOT NULL DEFAULT 0`
+	err = alterTableByTx(tx, TblUser, userAlterSchema)
+	if err != nil {
+		log.Printf("Alter table user failed, %v", err)
+		return err
+	}
+
+	userAlterSchema2 := `ADD INDEX idx_external_uid(external_uid)`
+	err = alterTableByTx(tx, TblUser, userAlterSchema2)
+	if err != nil {
+		log.Printf("Alter table user failed, %v", err)
+		return err
+	}
+
+	err = updateDbVersion(tx, DbVer4)
+	if err != nil {
+		log.Printf("Update db version failed, %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func createAllDbs(dbAddr, dbUser, dbPassword string) error {
 	db, err := connectDbRoot(dbAddr, dbUser, dbPassword)
 	if err != nil {
@@ -235,6 +268,14 @@ func InitDb(dbAddr, dbUser, dbPassword string, targetVersion TDbVersion) error {
 		err = updateMyGoPracticeToVer3(dbMyGoPractice)
 		if err != nil {
 			log.Printf("Update DbMyGoPractice to version 3 failed, %v", err)
+			return err
+		}
+	}
+
+	if curVersion < DbVer4 && DbVer4 <= targetVersion {
+		err = updateMyGoPracticeToVer4(dbMyGoPractice)
+		if err != nil {
+			log.Printf("Update DbMyGoPractice to version 4 failed, %v", err)
 			return err
 		}
 	}

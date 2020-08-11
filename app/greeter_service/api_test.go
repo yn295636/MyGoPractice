@@ -29,7 +29,7 @@ func TestGreeterService(t *testing.T) {
 	t.Run("StoreInMongo", func(tt *testing.T) {
 		mongoClient, _ = InitMongoClient(MongoAddr)
 		asserting := assert.New(tt)
-		collection := []interface{}{}
+		var collection []interface{}
 		var mongoCollection *mongo.Collection
 		patches := gomonkey.ApplyMethod(reflect.TypeOf(mongoCollection),
 			"InsertOne", func(_ *mongo.Collection, _ context.Context, document interface{},
@@ -76,4 +76,5 @@ func TestGreeterService(t *testing.T) {
 		asserting.NoError(err)
 		asserting.Equal(value, actualVal)
 	})
+
 }

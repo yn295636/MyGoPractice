@@ -11,6 +11,8 @@ service Greeter {
     }
     rpc StoreInRedis (StoreInRedisRequest) returns (StoreInRedisReply) {
     }
+    rpc GetFromRedis (GetFromRedisRequest) returns (GetFromRedisReply) {
+    }
     rpc StoreUserInDb (StoreUserInDbRequest) returns (StoreUserInDbReply) {
     }
     rpc StorePhoneInDb (StorePhoneInDbRequest) returns (StorePhoneInDbReply) {
@@ -48,10 +50,19 @@ message StoreInRedisReply {
     int32 result = 1;
 }
 
+message GetFromRedisRequest {
+    string key = 1;
+}
+
+message GetFromRedisReply {
+    string value = 1;
+}
+
 message StoreUserInDbRequest {
     string username = 1;
     int32 gender = 2;
     int32 age = 3;
+    int32 externalUid = 4;
 }
 
 message StoreUserInDbReply {
@@ -76,4 +87,5 @@ message GetUserFromDbReply {
     string username = 2;
     int32 gender = 3;
     int32 age = 4;
+    int32 externalUid = 5;
 }
