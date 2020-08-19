@@ -303,3 +303,14 @@ func GetDb(dbName string) *sql.DB {
 	}
 	return db.(*sql.DB)
 }
+
+func DisconnectAllDb() {
+	mapDB.Range(func(k, v interface{}) bool {
+		dbConn := v.(*sql.DB)
+		if err := dbConn.Close(); err != nil {
+			log.Printf("Close DB connection for %v got error, %v", k, err)
+		}
+		mapDB.Delete(k)
+		return true
+	})
+}

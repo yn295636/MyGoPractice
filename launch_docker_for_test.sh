@@ -5,7 +5,7 @@ for i in $(seq 60 $END); do
   echo "SHOW STATUS like 'Connections';" | $MYSQL |& grep "ERROR"
   result=$?
   if [[ $result -ne 0 ]]; then
-    echo "SHOW STATUS like 'Connections';" | $MYSQL
+    echo "SHOW STATUS like 'Uptime';" | $MYSQL | grep 'Uptime'
     echo "Check mysql server working status successfully."
     break
   fi
