@@ -1,0 +1,10 @@
+version: '3'
+services:
+  mysql:
+    image: "mysql:5.7"
+    container_name: "mysql_mygopractice_test"
+    ports:
+      - "13306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "Mytest123!"
+      MYSQL_ROOT_HOST: "%"
