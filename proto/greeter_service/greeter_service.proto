@@ -9,6 +9,8 @@ service Greeter {
     }
     rpc StoreInMongo (StoreInMongoRequest) returns (StoreInMongoReply) {
     }
+    rpc CountOfDataInMongo (CountOfDataInMongoRequest) returns (CountOfDataInMongoReply) {
+    }
     rpc StoreInRedis (StoreInRedisRequest) returns (StoreInRedisReply) {
     }
     rpc GetFromRedis (GetFromRedisRequest) returns (GetFromRedisReply) {
@@ -39,6 +41,13 @@ message StoreInMongoRequest {
 // The response message for store in mongo success/fail
 message StoreInMongoReply {
     int32 result = 1;
+}
+
+message CountOfDataInMongoRequest {
+}
+
+message CountOfDataInMongoReply {
+    int64 count = 1;
 }
 
 message StoreInRedisRequest {
