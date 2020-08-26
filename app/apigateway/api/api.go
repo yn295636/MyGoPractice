@@ -177,13 +177,14 @@ func StoreUserInDb(c *gin.Context) {
 
 	ctx, cancel := context.WithTimeout(
 		c.Request.Context(),
-		time.Duration(2*time.Second))
+		2*time.Second)
 	defer cancel()
 
 	resp, err := client.StoreUserInDb(ctx, &pb.StoreUserInDbRequest{
-		Username: body.Username,
-		Gender:   int32(body.Gender),
-		Age:      int32(body.Age),
+		Username:    body.Username,
+		Gender:      int32(body.Gender),
+		Age:         int32(body.Age),
+		ExternalUid: body.ExternalUid,
 	})
 	if err != nil {
 		if s, ok := status.FromError(err); ok && s.Code() == codes.AlreadyExists {

@@ -70,16 +70,18 @@ func TestStoreUserInDb(t *testing.T) {
 	defer tearDown()
 	asserting := assert.New(t)
 	var (
-		username = "yn"
-		gender   = int32(2)
-		age      = int32(20)
-		uid      = int64(10)
+		username    = "yn"
+		gender      = int32(2)
+		age         = int32(20)
+		uid         = int64(10)
+		externalUid = int32(123)
 	)
 
 	mockStoreUserInDbReq := &pb.StoreUserInDbRequest{
-		Username: username,
-		Gender:   gender,
-		Age:      age,
+		Username:    username,
+		Gender:      gender,
+		Age:         age,
+		ExternalUid: externalUid,
 	}
 	mockStoreUserInDbReply := &pb.StoreUserInDbReply{
 		Uid: uid,
@@ -89,9 +91,10 @@ func TestStoreUserInDb(t *testing.T) {
 		Return(mockStoreUserInDbReply, nil)
 	testClient.POST("/db/users").
 		SetJSON(map[string]interface{}{
-			"username": username,
-			"gender":   gender,
-			"age":      age,
+			"username":     username,
+			"gender":       gender,
+			"age":          age,
+			"external_uid": externalUid,
 		}).
 		SetDebug(debug).
 		Run(ginEng, func(resp gofight.HTTPResponse, req gofight.HTTPRequest) {
