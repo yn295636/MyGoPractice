@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,6 +40,18 @@ func (s *server) StoreInMongo(ctx context.Context, in *greeter_service.StoreInMo
 	}
 	out.Result = 1
 	return out, nil
+}
+
+func (s *server) CountOfDataInMongo(ctx context.Context, in *greeter_service.CountOfDataInMongoRequest) (*greeter_service.CountOfDataInMongoReply, error) {
+	log.Printf("CountOfDataInMongo entered")
+	count, err := mongoClient.Database(MyMongoDb).Collection(MyMongoCollection).Count(ctx, bson.D{})
+	if err != nil {
+		log.Printf("Get data count from mongo failed, %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &greeter_service.CountOfDataInMongoReply{
+		Count: count,
+	}, nil
 }
 
 func (s *server) StoreInRedis(ctx context.Context, in *greeter_service.StoreInRedisRequest) (*greeter_service.StoreInRedisReply, error) {
