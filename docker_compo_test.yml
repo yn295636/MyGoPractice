@@ -8,3 +8,9 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "Mytest123!"
       MYSQL_ROOT_HOST: "%"
+    volumes:
+      - "/tmp/ramdisk:/var/lib/mysql"
+  adminer:
+    image: adminer
+    ports:
+      - 18080:8080
