@@ -1,6 +1,6 @@
 # MyGoPractice
 
-## How to setup the `golang v1.12` environment(based on ubuntu 19.10)
+## Setup the `golang v1.12` environment (based on ubuntu 19.10)
 
 ### 1. Install golang runtime
 Install golang runtime v1.12 by running the following commands
@@ -93,7 +93,8 @@ Install dep
 go get -u github.com/golang/dep/cmd/dep
 ```
 
-### 5. Install the 3rd party components
+## Install the 3rd party components
+
 Install docker
 ```
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -201,7 +202,7 @@ cd PROJ_FOLDER
 cd PROJ_FOLDER/app/greeter_service
 dlv test -- -test.v
 ```
-Then you can set breakpoint in `dlv` interactive command-line interface. For instance, you can set the breakpoint in the case regarding for operating mysql DB, and then check the data in mysql test DB (port: 13306, user: root, password: Mytest123!). For the detailed usage of `dlv`, please check the [doc](https://github.com/go-delve/delve/blob/master/Documentation/cli/README.md)
+Then you can set breakpoint in `dlv` interactive command-line interface. For instance, you can set the breakpoint in the case regarding for operating mysql DB, and then check the data in mysql test DB (port: 13306, user: root, password: Mytest123!). For the detailed usage of `dlv`, please check the [dlv doc](https://github.com/go-delve/delve/blob/master/Documentation/cli/README.md)
 
 After the debug is finished, please teardown the test
 ```
