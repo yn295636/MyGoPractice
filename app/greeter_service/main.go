@@ -22,8 +22,8 @@ const (
 	MongoAddr         = ":27017"
 	RedisAddr         = "127.0.0.1:6379"
 	DbAddr            = "127.0.0.1:3306"
-	DbUser            = "tester"
-	DbPassword        = "test123"
+	DbUser            = "root"
+	DbPassword        = "Mygopractice123!"
 )
 
 var (
