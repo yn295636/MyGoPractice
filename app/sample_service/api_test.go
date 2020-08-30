@@ -9,10 +9,9 @@ import (
 	"github.com/h2non/gock"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/yn295636/MyGoPractice/grpcfactory"
 	"github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"github.com/yn295636/MyGoPractice/proto/sample_service"
-	"google.golang.org/grpc"
-	"net"
 	"net/http"
 	"testing"
 	"time"
@@ -169,45 +168,44 @@ func TestCreateUserFromExternal_WithSuccess(t *testing.T) {
 	assert := require.New(t)
 	ctrl := gomock.NewController(t)
 	newUid := 100
-
-	lis, err := net.Listen("tcp", ":50051")
-	assert.NoError(err)
-	grpcServer := grpc.NewServer()
-	mockGreeterSvr := greeter_service.NewMockGreeterServer(ctrl)
-	greeter_service.RegisterGreeterServer(grpcServer, mockGreeterSvr)
-	go func() {
-		err = grpcServer.Serve(lis)
-		assert.NoError(err)
-	}()
-	mockGreeterSvr.EXPECT().
-		StoreUserInDb(gomock.Any(),
-			gomock.Eq(&greeter_service.StoreUserInDbRequest{
-				Username:    "external user2",
-				Gender:      2,
-				Age:         20,
-				ExternalUid: int32(externalUid),
-			})).
-		//Do(func(_ interface{}, _ interface{}) {
-		//	time.Sleep(time.Second*2)
-		//}).
-		Return(&greeter_service.StoreUserInDbReply{
-			Uid: int64(newUid),
-		}, nil)
-	defer grpcServer.Stop()
-
-	//mockGreeterClient := NewMockGreeterClient(ctrl).(*greeter_service.MockGreeterClient)
-	//mockGreeterClient.EXPECT().
-	//	StoreUserInDb(
-	//		gomock.Any(),
+	defer ctrl.Finish()
+	//lis, err := net.Listen("tcp", ":50051")
+	//assert.NoError(err)
+	//grpcServer := grpc.NewServer()
+	//mockGreeterSvr := greeter_service.NewMockGreeterServer(ctrl)
+	//greeter_service.RegisterGreeterServer(grpcServer, mockGreeterSvr)
+	//go func() {
+	//	err = grpcServer.Serve(lis)
+	//	assert.NoError(err)
+	//}()
+	//mockGreeterSvr.EXPECT().
+	//	StoreUserInDb(gomock.Any(),
 	//		gomock.Eq(&greeter_service.StoreUserInDbRequest{
 	//			Username:    "external user2",
 	//			Gender:      2,
 	//			Age:         20,
 	//			ExternalUid: int32(externalUid),
 	//		})).
+	//	//Do(func(_ interface{}, _ interface{}) {
+	//	//	time.Sleep(time.Second*2)
+	//	//}).
 	//	Return(&greeter_service.StoreUserInDbReply{
 	//		Uid: int64(newUid),
 	//	}, nil)
+	//defer grpcServer.Stop()
+	mockGrpcFactory := grpcfactory.SetupMockGrpcClientFactory(ctrl)
+	mockGrpcFactory.GreeterClient.EXPECT().
+		StoreUserInDb(
+			gomock.Any(),
+			gomock.Eq(&greeter_service.StoreUserInDbRequest{
+				Username:    "external user2",
+				Gender:      2,
+				Age:         20,
+				ExternalUid: int32(externalUid),
+			})).
+		Return(&greeter_service.StoreUserInDbReply{
+			Uid: int64(newUid),
+		}, nil)
 
 	s := server{}
 	req := &sample_service.CreateUserFromExternalReq{
