@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/yn295636/MyGoPractice/app/apigateway/grpcfactory"
+	"github.com/yn295636/MyGoPractice/grpcfactory"
 	pb "github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

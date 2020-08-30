@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/yn295636/MyGoPractice/app/apigateway/grpcfactory"
 	"github.com/yn295636/MyGoPractice/app/apigateway/router"
+	"github.com/yn295636/MyGoPractice/grpcfactory"
 )
 
 const (
