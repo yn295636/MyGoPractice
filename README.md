@@ -1,14 +1,14 @@
 # MyGoPractice
 
-## Setup the `golang v1.12` environment (based on ubuntu 19.10)
+## Setup the `golang v1.14` environment (based on ubuntu 19.10)
 
 ### 1. Install golang runtime
-Install golang runtime v1.12 by running the following commands
+Install golang runtime v1.14 by running the following commands
 ```
 sudo add-apt-repository ppa:longsleep/golang-backports
 sudo apt-get install software-properties-common
 sudo apt-get update 
-sudo apt-get install golang-1.12
+sudo apt-get install golang-1.14
 ```
 Now we need to add the go binary to our path. I like to put it in my `.profile` by typing:
 ```
@@ -16,7 +16,7 @@ vim ~/.profile
 ```
 Then scrolling to the bottom and adding the following line
 ```
-export PATH="$PATH:/usr/lib/go-1.12/bin"
+export PATH="$PATH:/usr/lib/go-1.14/bin"
 ```
 Then use the source command to reread your profile.
 ```
@@ -26,7 +26,7 @@ Now type:
 ```
 go version
 ```
-And you should see that `Go 1.12` is installed.
+And you should see that `Go 1.14` is installed.
 
 ### 2. Setup golang environment variables
 Create a new folder under the user home, where to store all the golang related utility and source code in
@@ -39,7 +39,7 @@ vim ~/.profile
 ```
 Then scrolling to the bottom and adding the following line
 ```
-export GOROOT="/usr/lib/go-1.12"
+export GOROOT="/usr/lib/go-1.14"
 export GOPATH="$HOME/gopath"
 export PATH="$PATH:$GOPATH/bin"
 ```
@@ -88,10 +88,6 @@ Install dlv v1.2.0
 ```
 GO111MODULE=on go get github.com/go-delve/delve/cmd/dlv@v1.2.0
 ```
-Install dep
-```
-go get -u github.com/golang/dep/cmd/dep
-```
 
 ## Install the 3rd party components
 
@@ -124,10 +120,11 @@ git clone https://github.com/yn295636/MyGoPractice
 ```
 
 ### 2. Install dependencies
-Install the dependencies through dep
+Install the dependencies through `go mod`
 ```
 cd PROJ_FOLDER
-dep ensure -v
+GO111MODULE=on go mod tidy
+GO111MODULE=on go mod vendor
 ```
 
 ### 3. Generate golang code for protobuf

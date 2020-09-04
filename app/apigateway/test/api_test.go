@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/appleboy/gofight"
+	gofight "github.com/appleboy/gofight/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	assert "github.com/stretchr/testify/require"
