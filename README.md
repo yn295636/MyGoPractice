@@ -120,7 +120,7 @@ git clone https://github.com/yn295636/MyGoPractice
 ```
 
 ### 2. Install dependencies
-Install the dependencies through dep
+Install the dependencies through `go mod`
 ```
 cd PROJ_FOLDER
 GO111MODULE=on go mod tidy
