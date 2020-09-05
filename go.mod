@@ -8,7 +8,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.13.2
 	github.com/appleboy/gofight/v2 v2.0.0
 	github.com/coreos/bbolt v1.3.5 // indirect
-	github.com/coreos/etcd v3.3.25+incompatible // indirect
+	github.com/coreos/etcd v3.3.10+incompatible
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
@@ -41,7 +41,6 @@ require (
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20200427203606-3cfed13b9966 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.1-0.20180714160509-73f8eece6fdc // indirect
-	go.etcd.io/etcd v3.3.25+incompatible
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
@@ -54,4 +53,4 @@ replace github.com/h2non/gock v1.0.15 => gopkg.in/h2non/gock.v1 v1.0.15
 
 replace github.com/coreos/bbolt v1.3.5 => go.etcd.io/bbolt v1.3.5
 
-replace github.com/coreos/etcd v3.3.25+incompatible => go.etcd.io/etcd v3.3.25+incompatible
+replace google.golang.org/grpc v1.31.1 => google.golang.org/grpc v1.19.0
