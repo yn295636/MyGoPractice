@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/yn295636/MyGoPractice/common"
 	"github.com/yn295636/MyGoPractice/db"
+	"github.com/yn295636/MyGoPractice/etcd"
+	"github.com/yn295636/MyGoPractice/grpcfactory"
 	"log"
 	"net"
 	"time"
@@ -15,15 +18,9 @@ import (
 )
 
 const (
-	Port              = ":50051"
 	MyMongoDb         = "mygopracticedb"
 	MyMongoCollection = "mygopracticecollection"
 	RedisPrefix       = "mygopractice"
-	MongoAddr         = ":27017"
-	RedisAddr         = "127.0.0.1:6379"
-	DbAddr            = "127.0.0.1:3306"
-	DbUser            = "root"
-	DbPassword        = "Mygopractice123!"
 )
 
 var (
@@ -32,26 +29,40 @@ var (
 )
 
 func main() {
+	LoadConfig()
 	var err error
 
-	mongoClient, err = InitMongoClient(MongoAddr)
+	mongoClient, err = InitMongoClient(GetSettings().MongoAddr)
 	if err != nil {
 		log.Fatalf("Init Mongo failed, %v", err)
 	}
 
-	redisPool = InitRedisPool(RedisAddr)
+	redisPool = InitRedisPool(GetSettings().RedisAddr)
 
-	err = db.InitDb(DbAddr, DbUser, DbPassword, db.DbLatestVer)
+	err = db.InitDb(GetSettings().DbAddr, GetSettings().DbUser, GetSettings().DbPassword, db.DbLatestVer)
 	if err != nil {
 		log.Fatalf("Init Db failed, %v", err)
 	}
 
-	lis, err := net.Listen("tcp", Port)
+	grpcfactory.SetupGrpcClientFactory(GetSettings().EtcdAddrs)
+
+	lis, err := net.Listen("tcp", GetSettings().ListenPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
 	greeter_service.RegisterGreeterServer(s, &server{})
+
+	// Register on etcd
+	reg, err := etcd.NewService(etcd.ServiceInfo{
+		Name: "greeter_service",
+		IP:   fmt.Sprintf("%v%v", common.GetIPAddr(), GetSettings().ListenPort),
+	}, GetSettings().EtcdAddrs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	go reg.Start()
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

@@ -1,16 +1,23 @@
 package grpcfactory
 
 import (
+	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/yn295636/MyGoPractice/etcd"
 	greeterpb "github.com/yn295636/MyGoPractice/proto/greeter_service"
 	samplepb "github.com/yn295636/MyGoPractice/proto/sample_service"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/resolver"
 	"log"
+	"time"
 )
 
 const (
-	GreeterAddr = "localhost:50051"
-	SampleAddr  = "localhost:50052"
+	//GreeterAddr    = "localhost:50051"
+	//SampleAddr     = "localhost:50052"
+	SampleService  = "sample_service"
+	GreeterService = "greeter_service"
 )
 
 var (
@@ -24,8 +31,8 @@ type grpcClientFactoryI interface {
 	newGreeterClient() (greeterpb.GreeterClient, error, releaseFunc)
 }
 
-func SetupGrpcClientFactory() {
-	grpcCF = newGrpcClientFactory()
+func SetupGrpcClientFactory(etcdAddrs []string) {
+	grpcCF = newGrpcClientFactory(etcdAddrs)
 }
 
 func NewSampleClient() (samplepb.SampleClient, error, releaseFunc) {
@@ -37,38 +44,65 @@ func NewGreeterClient() (greeterpb.GreeterClient, error, releaseFunc) {
 }
 
 type grpcClientFactory struct {
+	EtcdAddrs []string
 }
 
-func newGrpcClientFactory() grpcClientFactoryI {
-	return &grpcClientFactory{}
+func newGrpcClientFactory(etcdAddrs []string) grpcClientFactoryI {
+	return &grpcClientFactory{
+		EtcdAddrs: etcdAddrs,
+	}
 }
 
 func (f *grpcClientFactory) newSampleClient() (samplepb.SampleClient, error, releaseFunc) {
-	conn, err := grpc.Dial(SampleAddr, grpc.WithInsecure())
+	r := etcd.NewResolver(f.EtcdAddrs, SampleService)
+	resolver.Register(r)
+	addr := fmt.Sprintf("%s:///%s", r.Scheme(), SampleService)
+	conn, err := grpc.Dial(
+		addr,
+		grpc.WithInsecure(),
+		grpc.WithBalancerName("round_robin"),
+		grpc.WithBlock(),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                30 * time.Second,
+			Timeout:             10 * time.Second,
+			PermitWithoutStream: true}))
+	//conn, err := grpc.Dial(SampleAddr, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Printf("did not connect: %v", err)
 		return nil, err, func() {}
 	}
 	c := samplepb.NewSampleClient(conn)
 	return c, nil, func() {
 		err = conn.Close()
 		if err != nil {
-			log.Fatalf("release connection error: %v", err)
+			log.Printf("release connection error: %v", err)
 		}
 	}
 }
 
 func (f *grpcClientFactory) newGreeterClient() (greeterpb.GreeterClient, error, releaseFunc) {
-	conn, err := grpc.Dial(GreeterAddr, grpc.WithInsecure())
+	r := etcd.NewResolver(f.EtcdAddrs, GreeterService)
+	resolver.Register(r)
+	addr := fmt.Sprintf("%s:///%s", r.Scheme(), GreeterService)
+	conn, err := grpc.Dial(
+		addr,
+		grpc.WithInsecure(),
+		grpc.WithBalancerName("round_robin"),
+		grpc.WithBlock(),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                30 * time.Second,
+			Timeout:             10 * time.Second,
+			PermitWithoutStream: true}))
+	//conn, err := grpc.Dial(GreeterAddr, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Printf("did not connect: %v", err)
 		return nil, err, func() {}
 	}
 	c := greeterpb.NewGreeterClient(conn)
 	return c, nil, func() {
 		err = conn.Close()
 		if err != nil {
-			log.Fatalf("release connection error: %v", err)
+			log.Printf("release connection error: %v", err)
 		}
 	}
 }
