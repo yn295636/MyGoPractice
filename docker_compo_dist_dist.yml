@@ -9,7 +9,7 @@ services:
       - "2380:2380"
     environment:
       - "ALLOW_NONE_AUTHENTICATION=yes"
-      - "ETCD_NAME=etcd"
+      - "ETCD_NAME=${ETCD_NAME}"
       - "ETCD_INITIAL_ADVERTISE_PEER_URLS=http://${IP_ADDR}:2380"
       - "ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
       - "ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
