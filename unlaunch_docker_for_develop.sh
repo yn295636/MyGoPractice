@@ -1,1 +1,1 @@
-docker-compose -f docker_compo.yml down
+docker-compose -f docker_compo_develop.yml down
