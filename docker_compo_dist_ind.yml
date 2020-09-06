@@ -11,6 +11,8 @@ services:
       MYSQL_ROOT_HOST: "%"
     volumes:
       - "/data/mysql_data:/var/lib/mysql"
+    networks:
+      - inds
   mongo:
     image: "mongo:4.2"
     container_name: "mongo_mygopractice"
@@ -19,14 +21,18 @@ services:
       - "27017:27017"
     volumes:
       - "/data/mongo_data:/data/db"
+    networks:
+      - inds
   redis:
     image: "redis:6.0"
     container_name: "redis_mygopractice"
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - inds
 
 networks:
-  default:
-      name: "mygopractice_individuals"
-      driver: "bridge"
+  inds:
+    name: "mygopractice_individuals"
+    driver: "bridge"
