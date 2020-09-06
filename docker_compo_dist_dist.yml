@@ -19,3 +19,30 @@ services:
       - "ETCD_INITIAL_CLUSTER_STATE=new"
     volumes:
       - "/data/etcd_data:/etcd-data"
+  greeter_service:
+    build:
+      context: "."
+      dockerfile: "Dockerfile.greeter_service"
+    image: "greeter_service"
+    container_name: "greeter_service_mygopractice"
+    restart: always
+    ports:
+      - "50051:50051"
+  sample_service:
+    build:
+      context: "."
+      dockerfile: "Dockerfile.sample_service"
+    image: "sample_service"
+    container_name: "sample_service_mygopractice"
+    restart: always
+    ports:
+      - "50052:50052"
+  apigateway:
+    build:
+      context: "."
+      dockerfile: "Dockerfile.apigateway"
+    image: "apigateway"
+    container_name: "apigateway_mygopractice"
+    restart: always
+    ports:
+      - "8081:8081"
