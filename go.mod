@@ -45,7 +45,6 @@ require (
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	google.golang.org/grpc v1.31.1
-	google.golang.org/grpc/examples v0.0.0-20200902210233-8630cac324bf // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
