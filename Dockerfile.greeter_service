@@ -12,4 +12,4 @@ COPY --from=builder ${PROJECT_FOLDER}/app/${APP_NAME}/config ./config
 RUN ls -R ./
 
 EXPOSE 50051
-CMD ["./${APP_NAME}", "-config", "config/config_dist.toml"]
+CMD ["./greeter_service", "-config", "config/config_dist.toml"]
