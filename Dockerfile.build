@@ -1,0 +1,23 @@
+FROM gomod:latest as dependencies
+ENV GO111MODULE=on
+ENV PROJECT_FOLDER="${GOPATH}/src/github.com/yn295636/MyGoPractice"
+
+# Copy local code to the container image.
+WORKDIR ${PROJECT_FOLDER}
+COPY . ./
+RUN go mod tidy
+RUN go mod vendor
+
+WORKDIR ${PROJECT_FOLDER}/proto/sample_service
+RUN ./build_proto.sh
+WORKDIR ${PROJECT_FOLDER}/proto/greeter_service
+RUN ./build_proto.sh
+
+WORKDIR ${PROJECT_FOLDER}/app/sample_service
+RUN go build
+WORKDIR ${PROJECT_FOLDER}/app/greeter_service
+RUN go build
+WORKDIR ${PROJECT_FOLDER}/app/apigateway
+RUN go build
+
+WORKDIR ${PROJECT_FOLDER}
