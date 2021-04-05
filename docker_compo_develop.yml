@@ -73,3 +73,28 @@ services:
       - "ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-mygopractice"
       - "ETCD_INITIAL_CLUSTER=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380"
       - "ETCD_INITIAL_CLUSTER_STATE=new"
+  nsqlookupd:
+    image: nsqio/nsq
+    container_name: "nsqlookupd_mygopractice"
+    restart: always
+    command: /nsqlookupd
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+  nsqd:
+    image: nsqio/nsq
+    container_name: "nsqd_mygopractice"
+    restart: always
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160 --broadcast-address=127.0.0.1 --data-path=/nsq_data
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+    volumes:
+      - "$HOME/nsq_data:/nsq_data"
+  nsqadmin:
+    image: nsqio/nsq
+    container_name: "nsqadmin_mygopractice"
+    restart: always
+    command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
+    ports:
+      - "4171:4171"

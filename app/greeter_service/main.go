@@ -53,6 +53,9 @@ func main() {
 	s := grpc.NewServer()
 	greeter_service.RegisterGreeterServer(s, &server{})
 
+	// start nsq consumer and producer
+	go InitNsq(settings.NsqAddr, settings.NsqLookupAddrs)
+
 	// Register on etcd
 	reg, err := etcd.NewService(etcd.ServiceInfo{
 		Name: "greeter_service",

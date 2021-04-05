@@ -17,13 +17,15 @@ func (t *Config) Validate() {
 }
 
 type Settings struct {
-	ListenPort string   `toml:"listen_port"`
-	MongoAddr  string   `toml:"mongo_addr"`
-	RedisAddr  string   `toml:"redis_addr"`
-	DbAddr     string   `toml:"db_addr"`
-	DbUser     string   `toml:"db_user"`
-	DbPassword string   `toml:"db_password"`
-	EtcdAddrs  []string `toml:"etcd_addrs"`
+	ListenPort     string   `toml:"listen_port"`
+	MongoAddr      string   `toml:"mongo_addr"`
+	RedisAddr      string   `toml:"redis_addr"`
+	DbAddr         string   `toml:"db_addr"`
+	DbUser         string   `toml:"db_user"`
+	DbPassword     string   `toml:"db_password"`
+	EtcdAddrs      []string `toml:"etcd_addrs"`
+	NsqAddr        string   `toml:"nsq_addr"`
+	NsqLookupAddrs string   `toml:"nsqlookup_addr"`
 }
 
 func SetSettings(s *Settings) {
@@ -43,6 +45,8 @@ func GetSettings() *Settings {
 				"localhost:22379",
 				"localhost:32379",
 			},
+			NsqAddr:        "127.0.0.1:4150",
+			NsqLookupAddrs: "127.0.0.1:4161",
 		}
 	}
 	return settings

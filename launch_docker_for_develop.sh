@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 [[ ! -d $HOME/mysql_data ]] && mkdir $HOME/mysql_data
 [[ ! -d $HOME/mongo_data ]] && mkdir $HOME/mongo_data
+[[ ! -d $HOME/nsq_data ]] && mkdir $HOME/nsq_data
 
 docker-compose -f docker_compo_develop.yml up -d
 
