@@ -19,6 +19,7 @@ func (t *Config) Validate() {
 type Settings struct {
 	ListenPort string   `toml:"listen_port"`
 	EtcdAddrs  []string `toml:"etcd_addrs"`
+	RedisAddr  string   `toml:"redis_addr"`
 }
 
 func SetSettings(s *Settings) {
@@ -33,6 +34,7 @@ func GetSettings() *Settings {
 				"localhost:22379",
 				"localhost:32379",
 			},
+			RedisAddr: "127.0.0.1:6379",
 		}
 	}
 	return settings

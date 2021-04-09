@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/yn295636/MyGoPractice/app/apigateway/redis"
 	"github.com/yn295636/MyGoPractice/grpcfactory"
 	pb "github.com/yn295636/MyGoPractice/proto/greeter_service"
+	"github.com/yn295636/MyGoPractice/ratelimit"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
@@ -15,6 +17,21 @@ import (
 )
 
 func Greet(c *gin.Context) {
+	if pass, err := ratelimit.Ratelimit(redis.GetConn(), "Greet", 1000, 10); err != nil {
+		log.Printf("Ratelimit module got error %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorRsp{
+			Code:    http.StatusInternalServerError,
+			Message: "server error",
+		})
+		return
+	} else if !pass {
+		c.JSON(http.StatusTooManyRequests, ErrorRsp{
+			Code:    http.StatusTooManyRequests,
+			Message: "too many requests",
+		})
+		return
+	}
+	
 	var body GreetReq
 	if err := c.ShouldBind(&body); err != nil {
 		log.Printf("Failed to bind to GreetReq, %v", err)
@@ -207,6 +224,21 @@ func StoreUserInDb(c *gin.Context) {
 }
 
 func StoreUserPhoneInDb(c *gin.Context) {
+	if pass, err := ratelimit.Ratelimit(redis.GetConn(), "StoreUserPhoneInDb", 1000, 5); err != nil {
+		log.Printf("Ratelimit module got error %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorRsp{
+			Code:    http.StatusInternalServerError,
+			Message: "server error",
+		})
+		return
+	} else if !pass {
+		c.JSON(http.StatusTooManyRequests, ErrorRsp{
+			Code:    http.StatusTooManyRequests,
+			Message: "too many requests",
+		})
+		return
+	}
+
 	uidStr := c.Param("uid")
 	uid, err := strconv.ParseInt(uidStr, 10, 64)
 	if err != nil {
