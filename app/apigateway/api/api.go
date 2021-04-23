@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yn295636/MyGoPractice/app/apigateway/redis"
 	"github.com/yn295636/MyGoPractice/grpcfactory"
+	"github.com/yn295636/MyGoPractice/lock"
 	pb "github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"github.com/yn295636/MyGoPractice/ratelimit"
 	"google.golang.org/grpc/codes"
@@ -17,7 +18,7 @@ import (
 )
 
 func Greet(c *gin.Context) {
-	if pass, err := ratelimit.Ratelimit(redis.GetConn(), "Greet", 1000, 10); err != nil {
+	if pass, err := ratelimit.Ratelimit(redis.GetConn(), "Greet", 1000, 5); err != nil {
 		log.Printf("Ratelimit module got error %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorRsp{
 			Code:    http.StatusInternalServerError,
@@ -31,7 +32,7 @@ func Greet(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	var body GreetReq
 	if err := c.ShouldBind(&body); err != nil {
 		log.Printf("Failed to bind to GreetReq, %v", err)
@@ -54,8 +55,8 @@ func Greet(c *gin.Context) {
 	defer release()
 
 	ctx, cancel := context.WithTimeout(
-		c.Request.Context(),
-		time.Duration(2*time.Second))
+		c,
+		2*time.Second)
 	defer cancel()
 
 	resp, err := client.SayHello(ctx, &pb.HelloRequest{
@@ -106,8 +107,8 @@ func StoreInMongo(c *gin.Context) {
 	defer release()
 
 	ctx, cancel := context.WithTimeout(
-		c.Request.Context(),
-		time.Duration(2*time.Second))
+		c,
+		2*time.Second)
 	defer cancel()
 
 	resp, err := client.StoreInMongo(ctx, &pb.StoreInMongoRequest{
@@ -127,6 +128,18 @@ func StoreInMongo(c *gin.Context) {
 }
 
 func StoreInRedis(c *gin.Context) {
+	lockVal := lock.RedisLock(redis.GetConn(), "StoreInRedis", 3*1000)
+	if lockVal == "" {
+		log.Printf("Failed to get lock")
+		c.JSON(http.StatusConflict, ErrorRsp{
+			Code:    http.StatusConflict,
+			Message: "dup request",
+		})
+		return
+	}
+	defer lock.RedisUnlock(redis.GetConn(), "StoreInRedis", lockVal)
+	log.Printf("Get lock value %v", lockVal)
+
 	var body StoreInRedisReq
 	if err := c.ShouldBind(&body); err != nil {
 		log.Printf("Failed to bind to StoreInRedisReq, %v", err)
@@ -149,8 +162,8 @@ func StoreInRedis(c *gin.Context) {
 	defer release()
 
 	ctx, cancel := context.WithTimeout(
-		c.Request.Context(),
-		time.Duration(2*time.Second))
+		c,
+		2*time.Second)
 	defer cancel()
 
 	resp, err := client.StoreInRedis(ctx, &pb.StoreInRedisRequest{
@@ -193,7 +206,7 @@ func StoreUserInDb(c *gin.Context) {
 	defer release()
 
 	ctx, cancel := context.WithTimeout(
-		c.Request.Context(),
+		c,
 		2*time.Second)
 	defer cancel()
 
@@ -272,8 +285,8 @@ func StoreUserPhoneInDb(c *gin.Context) {
 	defer release()
 
 	ctx, cancel := context.WithTimeout(
-		c.Request.Context(),
-		time.Duration(2*time.Second))
+		c,
+		2*time.Second)
 	defer cancel()
 
 	_, err = client.GetUserFromDb(ctx, &pb.GetUserFromDbRequest{Uid: uid})
