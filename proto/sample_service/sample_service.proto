@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package sample_service;
 
+option go_package = "github.com/yn295636/MyGoPractice/proto/sample_service";
+
 // The sample service definition.
 service Sample {
     rpc Multiply (MultiplyReq) returns (MultiplyResp) {

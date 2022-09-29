@@ -9,3 +9,7 @@ pyvenv/
 *_pb2_grpc.py
 **/__pycache__
 app/sample_service/sample_service
+mongo_data/
+mysql_data/
+nsq_data/
+playground/

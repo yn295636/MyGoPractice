@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/mvcc/mvccpb"
+	"go.etcd.io/etcd/api/v3/mvccpb"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc/resolver"
 	"log"
 )
@@ -27,13 +27,13 @@ func (r *Resolver) Scheme() string {
 	return schema + "_" + r.service
 }
 
-func (r *Resolver) ResolveNow(rn resolver.ResolveNowOption) {
+func (r *Resolver) ResolveNow(rn resolver.ResolveNowOptions) {
 }
 
 func (r *Resolver) Close() {
 }
 
-func (r *Resolver) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOption) (resolver.Resolver, error) {
+func (r *Resolver) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
 	var err error
 
 	r.cli, err = clientv3.New(clientv3.Config{

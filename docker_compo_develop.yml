@@ -10,7 +10,7 @@ services:
       MYSQL_ROOT_PASSWORD: "Mygopractice123!"
       MYSQL_ROOT_HOST: "%"
     volumes:
-      - "$HOME/mysql_data:/var/lib/mysql"
+      - "./mysql_data:/var/lib/mysql"
   mongo:
     image: "mongo:4.2"
     container_name: "mongo_mygopractice"
@@ -18,7 +18,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - "$HOME/mongo_data:/data/db"
+      - "./mongo_data:/data/db"
   redis:
     image: "redis:6.0"
     container_name: "redis_mygopractice"
@@ -90,7 +90,7 @@ services:
       - "4150:4150"
       - "4151:4151"
     volumes:
-      - "$HOME/nsq_data:/nsq_data"
+      - "./nsq_data:/nsq_data"
   nsqadmin:
     image: nsqio/nsq
     container_name: "nsqadmin_mygopractice"

@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 	"log"
 	"strings"
+	"time"
 )
 
 // server is used to implement greeter_service.GreeterServer.
@@ -21,6 +22,12 @@ type server struct{}
 // SayHello implements greeter_service.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *greeter_service.HelloRequest) (*greeter_service.HelloReply, error) {
 	log.Printf("SayHello received: %v", in.Name)
+	select {
+	case <-ctx.Done():
+		log.Printf("ctx done, error %v", ctx.Err())
+		return nil, ctx.Err()
+	case <-time.After(time.Second * 5):
+	}
 	return &greeter_service.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
@@ -76,8 +83,7 @@ func (s *server) GetFromRedis(ctx context.Context, in *greeter_service.GetFromRe
 	var out *greeter_service.GetFromRedisReply
 	redisConn := redisPool.Get()
 	if result, err := redis.String(
-		redisConn.Do("GET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key)));
-		err != nil {
+		redisConn.Do("GET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key))); err != nil {
 		log.Printf("Get data from redis failed, %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	} else {

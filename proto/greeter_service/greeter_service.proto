@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package greeter_service;
 
+option go_package = "github.com/yn295636/MyGoPractice/proto/greeter_service";
+
 // The greeting service definition.
 service Greeter {
     // Sends a greeting
