@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/agiledragon/gomonkey"
 	miniredis "github.com/alicebob/miniredis/v2"
 	"github.com/mongodb/mongo-go-driver/mongo"
@@ -11,8 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/yn295636/MyGoPractice/db"
 	pb "github.com/yn295636/MyGoPractice/proto/greeter_service"
-	"reflect"
-	"testing"
 )
 
 var (
@@ -33,7 +34,7 @@ func TestSayHello(t *testing.T) {
 }
 
 func TestStoreInMongo(t *testing.T) {
-	mongoClient, _ = InitMongoClient(MongoAddr)
+	mongoClient, _ = InitMongoClient(GetSettings().MongoAddr)
 	asserting := require.New(t)
 	var collection []interface{}
 	var mongoCollection *mongo.Collection

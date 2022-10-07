@@ -3,17 +3,22 @@ package ratelimit
 import (
 	"errors"
 	"fmt"
-	"github.com/gomodule/redigo/redis"
-	"github.com/yn295636/MyGoPractice/common"
-	"io/ioutil"
 	"log"
-	"os"
 	"time"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 const (
-	LuaScriptName = "redis_rate_limit.lua"
-	KeyFormat     = "ratelimit_%v"
+	KeyFormat  = "ratelimit_%v"
+	luaContent = `
+if (redis.call('exists', KEYS[1]) == 0) then
+    redis.call('rpush', KEYS[1], ARGV[1]);
+    return redis.call('pexpire', KEYS[1], ARGV[2]);
+else
+    return redis.call('rpushx', KEYS[1], ARGV[1]);
+end;
+	`
 )
 
 func Ratelimit(redisConn redis.Conn, key string, windowMs, threshold uint) (bool, error) {
@@ -27,25 +32,14 @@ func Ratelimit(redisConn redis.Conn, key string, windowMs, threshold uint) (bool
 		return false, nil
 	}
 
-	file, err := os.Open(fmt.Sprintf("../../%v", LuaScriptName))
-	if err != nil {
-		log.Printf("Opening %v got error %v", LuaScriptName, err)
-		return false, err
-	}
-	bytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Printf("Reading %v got error %v", LuaScriptName, err)
-		return false, err
-	}
-	luaContent := common.UnsafeBytesToString(bytes)
 	lua := redis.NewScript(2, luaContent)
 	result, err := redis.Uint64(lua.Do(redisConn, fmt.Sprintf(KeyFormat, key), "window", time.Now().Unix(), windowMs))
 	if err != nil {
-		log.Printf("Executing lua script %v got error %v", LuaScriptName, err)
+		log.Printf("Executing lua script got error %v", err)
 		return false, err
 	}
 	if result == 0 {
-		return false, errors.New(fmt.Sprintf("Executing lua script %v got wrong result 0", LuaScriptName))
+		return false, errors.New("executing lua script got wrong result 0")
 	}
 	return true, nil
 }
