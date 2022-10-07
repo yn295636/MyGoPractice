@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 services:
   mysql:
     image: "mysql:5.7"
@@ -10,7 +10,9 @@ services:
       MYSQL_ROOT_PASSWORD: "Mygopractice123!"
       MYSQL_ROOT_HOST: "%"
     volumes:
-      - "./mysql_data:/var/lib/mysql"
+      - "/data/mysql_data:/var/lib/mysql"
+    networks:
+      - inds
   mongo:
     image: "mongo:4.2"
     container_name: "mongo_mygopractice"
@@ -18,10 +20,19 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - "./mongo_data:/data/db"
+      - "/data/mongo_data:/data/db"
+    networks:
+      - inds
   redis:
     image: "redis:6.0"
     container_name: "redis_mygopractice"
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - inds
+
+networks:
+  inds:
+    name: "mygopractice_individuals"
+    driver: "bridge"

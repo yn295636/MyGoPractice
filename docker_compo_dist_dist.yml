@@ -1,0 +1,54 @@
+version: '3.5'
+services:
+  etcd:
+    image: "quay.io/coreos/etcd:v3.3.25"
+    container_name: "etcd_mygopractice"
+    restart: always
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    environment:
+      - "ALLOW_NONE_AUTHENTICATION=yes"
+      - "ETCD_NAME=${ETCD_NAME}"
+      - "ETCD_INITIAL_ADVERTISE_PEER_URLS=http://${IP_ADDR}:2380"
+      - "ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
+      - "ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
+      - "ETCD_ADVERTISE_CLIENT_URLS=http://${IP_ADDR}:2379"
+      - "ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-mygopractice"
+      - "ETCD_INITIAL_CLUSTER=etcd1=http://192.168.2.200:2380,etcd2=http://192.168.2.201:2380"
+      - "ETCD_INITIAL_CLUSTER_STATE=new"
+    volumes:
+      - "/data/etcd_data:/etcd-data"
+  greeter_service:
+    build:
+      context: "."
+      dockerfile: "Dockerfile.greeter_service"
+    image: "greeter_service"
+    container_name: "greeter_service_mygopractice"
+    restart: always
+    ports:
+      - "50051:50051"
+    depends_on:
+      - "etcd"
+  sample_service:
+    build:
+      context: "."
+      dockerfile: "Dockerfile.sample_service"
+    image: "sample_service"
+    container_name: "sample_service_mygopractice"
+    restart: always
+    ports:
+      - "50052:50052"
+    depends_on:
+      - "etcd"
+  apigateway:
+    build:
+      context: "."
+      dockerfile: "Dockerfile.apigateway"
+    image: "apigateway"
+    container_name: "apigateway_mygopractice"
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - "etcd"

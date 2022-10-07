@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/yn295636/MyGoPractice/grpcfactory"
 	"github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"github.com/yn295636/MyGoPractice/proto/sample_service"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
@@ -92,25 +92,24 @@ func (s *server) CreateUserFromExternal(ctx context.Context, in *sample_service.
 	}
 
 	// Get client for greeter_service
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
-	if err != nil {
-		log.Printf("greeter_service cannot be connected: %v", err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	greeterClient := greeter_service.NewGreeterClient(conn)
-	defer func() {
-		err = conn.Close()
-		if err != nil {
-			log.Fatalf("release connection error: %v", err)
-		}
-	}()
-
-	//greeterClient, err, releaseConn := GetGreeterClient()
+	//conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	//if err != nil {
-	//	log.Printf("Get greeter_service client got error: %v", err)
+	//	log.Printf("greeter_service cannot be connected: %v", err)
 	//	return nil, status.Error(codes.Internal, err.Error())
 	//}
-	//defer releaseConn()
+	//greeterClient := greeter_service.NewGreeterClient(conn)
+	//defer func() {
+	//	err = conn.Close()
+	//	if err != nil {
+	//		log.Fatalf("release connection error: %v", err)
+	//	}
+	//}()
+	greeterClient, err, releaseConn := grpcfactory.NewGreeterClient()
+	if err != nil {
+		log.Printf("Get greeter_service client got error: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	defer releaseConn()
 
 	resp, err := greeterClient.StoreUserInDb(ctx, &greeter_service.StoreUserInDbRequest{
 		Username:    externalUserInfo.Name,

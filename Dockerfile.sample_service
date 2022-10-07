@@ -1,0 +1,15 @@
+FROM build:latest as builder
+FROM centos:7
+ENV PROJECT_FOLDER="/go/src/github.com/yn295636/MyGoPractice"
+ENV DEPLOY_FOLDER="/data/release"
+ENV APP_NAME="sample_service"
+
+# Copy the binary to the production image from the builder stage.
+WORKDIR ${DEPLOY_FOLDER}/${APP_NAME}
+COPY --from=builder ${PROJECT_FOLDER}/app/${APP_NAME}/${APP_NAME} .
+COPY --from=builder ${PROJECT_FOLDER}/app/${APP_NAME}/config ./config
+
+RUN ls -R ./
+
+EXPOSE 50052
+CMD ["./sample_service", "-config", "config/config_dist.toml"]

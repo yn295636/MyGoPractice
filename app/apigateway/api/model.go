@@ -26,7 +26,7 @@ type StoreInRedisResp struct {
 
 type StoreUserInDbReq struct {
 	Username    string `json:"username" form:"username" binding:"required" example:"peter123"`
-	Gender      int8   `json:"gender" form:"gender" binding:"required" example:"1"`
+	Gender      int8   `json:"gender" form:"gender" binding:"omitempty" example:"1"`
 	Age         int8   `json:"age" form:"age" binding:"required" example:"18"`
 	ExternalUid int32  `json:"external_uid" form:"external_uid" binding:"required" example:"1"`
 }

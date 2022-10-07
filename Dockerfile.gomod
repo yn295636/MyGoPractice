@@ -1,0 +1,26 @@
+# Use the offical Golang image to create a build artifact.
+# This is based on Debian and sets the GOPATH to /go.
+# https://hub.docker.com/_/golang
+FROM golang:1.14.7 as builder
+ENV GO111MODULE=on
+ENV PROJECT_FOLDER="${GOPATH}/src/github.com/yn295636/MyGoPractice"
+
+# Install protobuf
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install unzip
+ENV PROTOBUF_VERSION="3.9.1"
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip
+RUN /usr/bin/unzip protoc-${PROTOBUF_VERSION}-linux-x86_64.zip -d /usr
+RUN rm protoc-${PROTOBUF_VERSION}-linux-x86_64.zip
+
+# Install dependencies
+RUN go get github.com/golang/mock/mockgen@v1.4.3
+RUN go get github.com/golang/protobuf/protoc-gen-go@v1.2.0
+
+WORKDIR ${PROJECT_FOLDER}
+COPY . ./
+RUN go mod tidy
+
+WORKDIR ${GOPATH}
+RUN rm -rf ${PROJECT_FOLDER}

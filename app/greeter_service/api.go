@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	"github.com/gomodule/redigo/redis"
 	"github.com/mongodb/mongo-go-driver/bson"
+	"github.com/yn295636/MyGoPractice/nsqwrap"
 	"github.com/yn295636/MyGoPractice/proto/greeter_service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
 	"strings"
+	"time"
 )
 
 // server is used to implement greeter_service.GreeterServer.
@@ -19,6 +22,12 @@ type server struct{}
 // SayHello implements greeter_service.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *greeter_service.HelloRequest) (*greeter_service.HelloReply, error) {
 	log.Printf("SayHello received: %v", in.Name)
+	select {
+	case <-ctx.Done():
+		log.Printf("ctx done, error %v", ctx.Err())
+		return nil, ctx.Err()
+	case <-time.After(time.Second * 5):
+	}
 	return &greeter_service.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
@@ -74,8 +83,7 @@ func (s *server) GetFromRedis(ctx context.Context, in *greeter_service.GetFromRe
 	var out *greeter_service.GetFromRedisReply
 	redisConn := redisPool.Get()
 	if result, err := redis.String(
-		redisConn.Do("GET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key)));
-		err != nil {
+		redisConn.Do("GET", fmt.Sprintf("%v_%v", RedisPrefix, in.Key))); err != nil {
 		log.Printf("Get data from redis failed, %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	} else {
@@ -104,16 +112,29 @@ func (s *server) StoreUserInDb(ctx context.Context, in *greeter_service.StoreUse
 func (s *server) StorePhoneInDb(ctx context.Context, in *greeter_service.StorePhoneInDbRequest) (*greeter_service.StorePhoneInDbReply, error) {
 	log.Printf("StorePhoneInDb received: %v", in)
 	var out *greeter_service.StorePhoneInDbReply
-	id, err := StorePhone(in)
-	if err != nil && strings.Contains(err.Error(), "Error 1062") {
-		log.Printf("phone already exists")
-		return nil, status.Error(codes.AlreadyExists, "phone already exists")
-	} else if err != nil {
-		log.Printf("Insert phone into db failed, %v", err)
+	//id, err := StorePhone(in)
+	//if err != nil && strings.Contains(err.Error(), "Error 1062") {
+	//	log.Printf("phone already exists")
+	//	return nil, status.Error(codes.AlreadyExists, "phone already exists")
+	//} else if err != nil {
+	//	log.Printf("Insert phone into db failed, %v", err)
+	//	return nil, status.Error(codes.Internal, err.Error())
+	//}
+
+	var msg []byte
+	msg, err := proto.Marshal(in)
+	if err != nil {
+		log.Printf("StorePhoneInDb marshal protobuf to bytes got error %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	err = nsqwrap.Publish(NsqTopicUpdateUserPhone, msg)
+	if err != nil {
+		log.Printf("StorePhoneInDb publishing nsq topic got error %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
 	out = &greeter_service.StorePhoneInDbReply{
-		Id: id,
+		Id: 0,
 	}
 	return out, nil
 }
