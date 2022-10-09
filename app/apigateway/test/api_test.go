@@ -91,7 +91,6 @@ func TestGreeting(t *testing.T) {
 		successCount := int32(0)
 		failedCount := int32(0)
 		for i := 0; i < total; i++ {
-			time.Sleep(time.Millisecond * 10)
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -108,8 +107,58 @@ func TestGreeting(t *testing.T) {
 						}
 					})
 			}()
+			time.Sleep(time.Millisecond * 10)
 		}
 		wg.Wait()
+		asserting.EqualValues(successCount, threshold)
+		asserting.EqualValues(successCount+failedCount, total)
+	})
+
+	t.Run("RateLimitRecover", func(tt *testing.T) {
+		defer mredis.FlushAll()
+		asserting := assert.New(tt)
+		wg := sync.WaitGroup{}
+		total := 15
+		threshold := 5
+		for i := 0; i < threshold; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				testClient.POST("/greet").
+					SetJSON(map[string]interface{}{
+						"name": "tester",
+					}).
+					SetDebug(debug).
+					Run(ginEng, func(_ gofight.HTTPResponse, _ gofight.HTTPRequest) {})
+			}()
+			time.Sleep(time.Millisecond * 10)
+		}
+		wg.Wait()
+		mredis.FastForward(time.Millisecond * 1010)
+
+		successCount := int32(0)
+		failedCount := int32(0)
+		for i := 0; i < total; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				testClient.POST("/greet").
+					SetJSON(map[string]interface{}{
+						"name": "tester",
+					}).
+					SetDebug(debug).
+					Run(ginEng, func(resp gofight.HTTPResponse, req gofight.HTTPRequest) {
+						if resp.Code == http.StatusTooManyRequests {
+							atomic.AddInt32(&failedCount, 1)
+						} else if resp.Code == http.StatusOK {
+							atomic.AddInt32(&successCount, 1)
+						}
+					})
+			}()
+			time.Sleep(time.Millisecond * 10)
+		}
+		wg.Wait()
+
 		asserting.EqualValues(successCount, threshold)
 		asserting.EqualValues(successCount+failedCount, total)
 	})
